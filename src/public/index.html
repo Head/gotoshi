@@ -2,13 +2,56 @@
 <html ng-app="app" lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Angular App</title>
-  <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
+  <title>Gotoshi</title>
   <base href="/">
 </head>
 <body>
-  <app></app>
+
+  <!-- Fixed navbar -->
+  <nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">Gotoshi</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li><a ui-sref="home">Home</a></li>
+          <li class="active"><a ui-sref="game.list">Games</a></li>
+          <li><a ui-sref="about">About</a></li>
+          <li ng-controller="HomeController as home">
+            <button ng-show="home.wallet.isConnected()" type="button" class="btn btn-default btn-lg" title="actual block height">
+              <span class="glyphicon glyphicon-object-align-horizontal" aria-hidden="true"> {{home.wallet.getHeight()}}</span>
+            </button>
+
+            <button type="button" class="btn btn-default btn-lg" title="last incoming transaction">
+              <span class="glyphicon glyphicon-link" aria-hidden="true"> {{home.wallet.getLastTX() | limitTo: 9 }}...</span>
+            </button>
+
+            <button ng-hide="home.wallet.isConnected()" type="button" class="btn btn-default btn-lg" data-ng-click="home.wallet.connect()" title="connect">
+              <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+            </button>
+
+            <button type="button" class="btn btn-default btn-lg" title="current wallet address">
+              <span class="glyphicon glyphicon-qrcode" aria-hidden="true"> {{home.wallet.getLatestAddress() | limitTo: 5}}...</span>
+            </button>
+
+            <button type="button" class="btn btn-default btn-lg">
+              <span class="glyphicon glyphicon-bitcoin" aria-hidden="true" title="your balance"> {{home.wallet.getBalance()}}</span>
+            </button>
+          </li>
+        </ul>
+      </div><!--/.nav-collapse -->
+    </div>
+  </nav>
+
+  <div class="container">
+    <ui-view></ui-view>
+  </div>
 </body>
 </html>

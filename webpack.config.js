@@ -84,9 +84,11 @@ module.exports = function makeWebpackConfig () {
       // Reference: https://github.com/babel/babel-loader
       // Transpile .js files using babel-loader
       // Compiles ES6 and ES7 into ES5 code
-      test: /\.js$/,
-      loader: 'babel',
-      exclude: /node_modules/
+        test: /\.js$/,
+        loader: 'babel',
+        query: {
+          presets: ['es2015']
+        }
     }, {
       // CSS LOADER
       // Reference: https://github.com/webpack/css-loader
@@ -116,9 +118,15 @@ module.exports = function makeWebpackConfig () {
       // Allow loading html through js
       test: /\.html$/,
       loader: 'raw'
-    }]
+    },
+    {test: /\.json$/, loader: "json-loader" },]
   };
 
+  
+  config.resolve = {
+        modulesDirectories: ['node_modules']
+    };
+	
   // ISPARTA LOADER
   // Reference: https://github.com/ColCh/isparta-instrumenter-loader
   // Instrument JS files with Isparta for subsequent code coverage reporting
@@ -159,7 +167,8 @@ module.exports = function makeWebpackConfig () {
     config.plugins.push(
       new HtmlWebpackPlugin({
         template: './src/public/index.html',
-        inject: 'body'
+        inject: 'body',
+        chunksSortMode: 'dependency'
       }),
 
       // Reference: https://github.com/webpack/extract-text-webpack-plugin
@@ -201,6 +210,14 @@ module.exports = function makeWebpackConfig () {
     contentBase: './src/public',
     stats: 'minimal'
   };
+  
+  
+  config.node = {
+        'fs': 'empty',
+        'tls': 'empty',
+        'net': 'empty',
+        'dns': 'empty'
+    };
 
   return config;
 }();

@@ -1,0 +1,34 @@
+<div class="form main-form">
+  <div class="login-form__left">
+
+    <h2>{{g.Game.currentGame.address.public}}</h2>
+    <p ng-show="g.Game.currentGame.state == 'running'">{{g.Game.currentGame.players.one}} VS {{g.Game.currentGame.players.two}}</p>
+
+    <div class="tenuki-board tenuki-board-textured" data-include-coordinates="true"></div>
+
+    <hr/>
+
+    currentGame:
+    {{g.Game.currentGame}}
+
+    <hr/>
+
+  </div>
+  <div class="login-form__center">
+    <p></p>
+  </div>
+  <div class="row login-form__right">
+
+    <button ng-show="g.Game.currentGame.state == 'running' && g.Game.currentGame.players.two == null && !g.wallet.isOwnAddress(g.Game.currentGame.players.one)" type="submit" class="submit_button" data-ng-click="g.Game.joinGame()">Join</button>
+
+    <div class="controls" ng-show="g.Game.currentGame.players.two != null && g.Game.currentGame.players.one != null">
+      <div class="buttons">
+        <button ng-show="g.wallet.isOwnAddress(g.Game.currentGame.players.two) || g.wallet.isOwnAddress(g.Game.currentGame.players.one)" type="submit" class="submit_button pass" data-ng-click="g.client.pass()">Pass</button>
+      </div>
+
+      <div class="game-info"><p></p></div>
+      <div class="text-info"><p></p></div>
+    </div>
+  </div>
+
+</div>

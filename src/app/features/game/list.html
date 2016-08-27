@@ -1,0 +1,22 @@
+<div>
+
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <button ng-show="g.wallet.isConnected() && g.wallet.getBalance() > 0" type="button" class="btn btn-success" data-ng-click="g.startNewGame('black')">Start new game</button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div ng-repeat="game in g.Game.getGames() track by $index" class="col-xs-6 col-md-2">
+            <a ui-sref="game.play({pubKey: game.address.public})" class="thumbnail">
+                <span ng-show="game.state == 'init'" class="glyphicon glyphicon-pause" aria-hidden="true"></span>
+                <span ng-show="game.state == 'running'" class="glyphicon glyphicon-play" aria-hidden="true"></span>
+                <span ng-show="game.state == 'end'" class="glyphicon glyphicon-stop" aria-hidden="true"></span>
+                {{game.address.public | limitTo: 8}}<br/>
+                {{game.players.one | limitTo: 5}} VS {{game.players.two | limitTo: 5}}<br/>
+                Move: {{game.moves.length}}
+            </a>
+        </div>
+    </div>
+
+</div>
