@@ -11,6 +11,7 @@ class Game {
         this.$state = $state;
         this.wallet = wallet;
 
+        //todo use vanity address
         this.masterAddress = '2N2G7Ps2W5AepNaK3Sk9pxxCkomc9yEif5T';// 2N2G7Ps2W5AepNaK3Sk9pxxCkomc9yEif5T 2My53r8phch7JbfzyHgJcDbRfV4vBSa1yJr '2N8Dn9MYKmmxrDgb9wanNfCcp6Ar31tRvDZ';
 
         this.gameInitState = {
@@ -100,7 +101,6 @@ class Game {
                     }else{
                         //todo: verify in address in further moves!
                         const data = JSON.parse(message);
-                        if(typeof data.n === 'undefined') data.n = this.games[gameAddress].moves.length; //todo just for debugging old moves, remove me
                         const move = {y: data.y, x: data.x, n: data.n, p: data.p};
                         this.games[gameAddress].moves[move.n] = move;
                         if(this.currentGame && this.currentGame.state === 'running' && this.currentGame.address.public === gameAddress) this.notifyMove(move);
@@ -136,23 +136,25 @@ class Game {
         return deferred.promise;
     }
     setGame(game) {
+        debug("set Game called", JSON.stringify(game));
         if(game === 'undefined') return;
         this.currentGame = game;
         this.notifyObservers({type:'start', game: game});
         this.currentGame.moves.forEach((move) => {this.notifyMove(move)});
-        this.bitcoinNode.subscribe(game.address.public);
+        this.bitcoinNode.subscribe(this.currentGame.address.public);
+
     }
     joinGame() {
         if(this.currentGame.players.two !== null) debug('player two not null');
-        if(this.currentGame.players.one === this.wallet.address) debug('player one wallets match');
-        if(this.currentGame.players.two !== null || this.currentGame.players.one === this.wallet.address) return;
+        if(this.currentGame.players.one === this.wallet.getLatestAddress()) debug('player one wallets match');
+        if(this.currentGame.players.two !== null || this.currentGame.players.one === this.wallet.getLatestAddress()) return;
         const sendTos = [
             {address: this.currentGame.address.public, value: 10000},
-            {address: this.masterAddress, value: 10000} //todo use vanity address
+            {address: this.masterAddress, value: 10000}
         ];
 
         this.transaction.sendTxTo(sendTos, this.commands.join);
-        this.currentGame.players.two = this.wallet.address;
+        this.currentGame.players.two = this.wallet.getLatestAddress();
     }
     notifyMove(move) {
         this.notifyObservers({type:'move', move: move});

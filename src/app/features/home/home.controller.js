@@ -1,17 +1,10 @@
 export default class HomeController {
-  constructor(randomNames, wallet) {
+  constructor(wallet, $sce) {
     this.wallet = wallet;
-    this.random = randomNames;
-    this.name = 'World';
-  }
+    this.name = this.wallet.getLatestAddress();
 
-  changeName() {
-    this.name = 'angular-tips';
-  }
-
-  randomName() {
-    this.name = this.random.getName();
+    this.htmlAddress = $sce.trustAsHtml('<h5>'+this.wallet.getLatestAddress()+'</h5><img width=\'150\' height=\'150\' src=\'https://blockchain.info/qr?data='+this.wallet.getLatestAddress()+'}&amp;size=150\'>');
   }
 }
 
-HomeController.$inject = ['randomNames', 'wallet'];
+HomeController.$inject = ['wallet', '$sce'];

@@ -56,7 +56,7 @@ class Wallet {
                 }
             });
         }catch(e){
-            debug("a wild error occurred ", e);
+            //debug("a wild error occurred ", e);
         }
     }
 

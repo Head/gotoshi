@@ -1,6 +1,16 @@
 <div id="home-header" class="jumbotron">
-  <greeting name="home.name"></greeting>
-</div>
+  <h1>Welcome to GOtoshi.</h1>
+  <greeting name="(home.name | limitTo: 8) + '...'"></greeting>
 
-<button class="btn btn-primary" ng-click="home.changeName()">Change</button>
-<button class="btn btn-danger" ng-click="home.randomName()">Random</button>
+  <p>
+    To play please install a local bridge:<br/>
+    npm install -g webcoin-bridge<br/>
+    npm install -g webcoin-bitcoin-testnet<br/>
+    webcoin-bridge --network webcoin-bitcoin-testnet --port 8193<br/>
+    <br/>
+    Debug with console:<br/>
+    localStorage.debug = 'gotoshi:*'<br/>
+    or for the full log<br/>
+    localStorage.debug = '*'
+  </p>
+</div>

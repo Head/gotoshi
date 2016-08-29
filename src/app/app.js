@@ -8,5 +8,6 @@ import routing from './app.config';
 import home from './features/home';
 import game from './features/game';
 
-angular.module('app', [uirouter, home, game])
+//https://angular-ui.github.io/bootstrap/
+angular.module('app', [uirouter, home, game, require( 'angular-bootstrap-npm' )])
   .config(routing);

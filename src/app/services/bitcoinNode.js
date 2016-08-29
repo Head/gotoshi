@@ -13,7 +13,7 @@ const levelup     = require('levelup');
 const debug       = require('debug')('gotoshi:bitcoinNode');
 
 class BitcoinNode {
-    constructor($q) {
+    constructor($q, $timeout) {
         this.$q = $q;
         this.subscriptions = [];
         //params.net.webSeeds.push('ws://localhost:8193');
@@ -39,27 +39,29 @@ class BitcoinNode {
         this.peers = new PeerGroup(params.net, {connectWeb: true, numPeers: 1, peerOpts: { relay: false }} );
         this.peersFilter = new Filter(this.peers, {falsePositiveRate: 0.0});
 
-        /*
-         .onceReady(function(foo) {
-         debug("wallet ready");
-         this.createAddress((err, key) => {
-         debug(err, key);
-         });
-         this.createAddress((err, key) => {
-         debug(err, key);
-         });
-         });*/
-
-
         const db     = levelup('bitcoin-testnet.chain', { db: require('memdown') });
         const chain  = new Blockchain(params.blockchain, db);
         const blockStream = new Download.BlockStream(this.peers, {filtered: true});
 
         blockStream.on('data', (block) => {
-            this.lastBlock = block.height;
+            $timeout(()=> { //hack to trigger angular scope cycles
+                this.lastBlock = block.height;
+            }, 0);
             if (block.height % 2016 === 0) {
                 debug('got 2016 block:', block.height);
                 localStorage.setItem('block', JSON.stringify(block));
+            }
+            if (!this.rescan && block.height == 925819) {
+                this.rescan = true;
+                chain.getBlockAtHeight(params.blockchain.checkpoints[0].height, function (err, startBlock) {
+                    if (err) {
+                        debug('error looking up block at height', params.blockchain.checkpoints[0].height);
+                        return this.emit('error', err)
+                    }
+
+                    const readStream = chain.createReadStream({ from: startBlock.header.getHash(), inclusive: false });
+                    readStream.pipe(blockStream);
+                });
             }
         });
 
@@ -108,7 +110,9 @@ class BitcoinNode {
 
         this.inv = new Inventory(this.peers);
         this.inv.on('tx', (tx) => {
-            notifyObservers(tx);
+            $timeout(()=> { //hack to trigger angular scope cycles
+                notifyObservers(tx);
+            }, 0);
         });
 
         this.connect();
@@ -122,10 +126,10 @@ class BitcoinNode {
     connect() {
         this.connected = true;
         this.peers.connect();
-        this.peers.accept((err) => {
+        /*this.peers.accept((err) => {
             if (err) return console.error(err);
             debug('accepting incoming connections');
-        })
+        })*/
     }
     getHeight() {
         return this.lastBlock;
@@ -150,7 +154,7 @@ class BitcoinNode {
     }
 }
 
-BitcoinNode.$inject = ['$q'];
+BitcoinNode.$inject = ['$q', '$timeout'];
 
 export default angular.module('services.bitcoin-node', [])
     .service('bitcoinNode', BitcoinNode)

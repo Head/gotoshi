@@ -1,20 +1,13 @@
 import ExampleGameControls from './example-controls';
 
+const debug = require('debug')('gotoshi:gameController');
+
 export default class GameController {
-    constructor(game, wallet, $stateParams, $interval, $scope) {
+    constructor(game, wallet, $stateParams) {
         this.Game = game;
-
         this.wallet = wallet;
-        $interval(function() {$scope.$applyAsync()}, 1000);
-
+        this.client = {};
         this.tenuki = require('tenuki');
-
-        if(typeof $stateParams.pubKey !== 'undefined') {
-            if(typeof this.Game.games[$stateParams.pubKey] === 'undefined') {
-                this.Game.resetGame($stateParams.pubKey);
-            }
-            this.Game.setGame(this.Game.games[$stateParams.pubKey]);
-        }
 
         /*if (data['moveNumber'] === client.moveNumber() + 1) {
          if (data['pass']) {
@@ -27,14 +20,18 @@ export default class GameController {
          client.setDeadStones(data['deadStones']);
          }*/
 
-
-        //this.$applyAsync();
-
         this.Game.registerObserverCallback(this.gotMessage.bind(this));
+
+        if(typeof $stateParams.pubKey !== 'undefined') {
+            if(typeof this.Game.games[$stateParams.pubKey] === 'undefined') {
+                this.Game.resetGame($stateParams.pubKey);
+            }
+            this.Game.setGame(this.Game.games[$stateParams.pubKey]);
+        }
     }
 
     gotMessage(message) {
-        console.log(message);
+        debug('gotMessage', message);
         if (message.type === 'start') {
             let player = 'white';
             if (this.wallet.isOwnAddress(message.game.players.one)) player = 'black';
@@ -44,9 +41,9 @@ export default class GameController {
         } else if (message.type === 'phase') {
             this.client.setDeadStones(message.deadStones);
         } else if (message.type === 'move') {
-            console.log('got move ' + message.move.n + ' and try to do move no ' + this.client.moveNumber() + '/' + this.Game.currentGame.moves.length);
+            debug('got move ' + message.move.n + ' and try to do move no ' + this.client.moveNumber() + '/' + this.Game.currentGame.moves.length);
             while (typeof this.Game.currentGame.moves[this.client.moveNumber()] !== 'undefined') {
-                console.log('do move no ' + this.client.moveNumber());
+                debug('do move no ' + this.client.moveNumber());
                 this.client._game.playAt(this.Game.currentGame.moves[this.client.moveNumber()].y, this.Game.currentGame.moves[this.client.moveNumber()].x);
             }
         }
@@ -111,4 +108,4 @@ export default class GameController {
     }
 }
 
-GameController.$inject = ['game', 'wallet', '$stateParams', '$interval', '$scope'];
+GameController.$inject = ['game', 'wallet', '$stateParams'];
