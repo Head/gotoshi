@@ -17,7 +17,7 @@ const bitcoinjs = require('bitcoinjs-lib');
 class Wallet {
     constructor(bitcoinNode) {
         this.bitcoinNode = bitcoinNode;
-        this.wallet = {balance:0, lastTX: '', address: '', unspend: []};
+        this.wallet = {balance:56468878, lastTX: '', address: '', unspend: []};
 
         debug('in init()');
         if(this.load()) {
@@ -67,9 +67,15 @@ class Wallet {
     connect() {
         this.bitcoinNode.connect();
     }
-    isConnected() { return this.bitcoinNode.isConnected() }
+    isConnected() {
+        return true;
+        return this.bitcoinNode.isConnected();
+    }
     getHeight() {
         return this.bitcoinNode.getHeight();
+    }
+    getSynctimeDiff() {
+        return this.bitcoinNode.getSynctimeDiff();
     }
     getLatestAddress() {
         return this.wallet.address.address;
@@ -116,6 +122,49 @@ class Wallet {
     }
     listenToAddress(address) {
         this.bitcoinNode.subscribe(address.address).then(function() {});
+    }
+
+    sendTxTo(sendTos, message) {
+        let lastTx = this.getUnspend();
+        if(typeof lastTx !== 'object') return;
+
+        const tx = new bitcoinjs.TransactionBuilder(bitcoinjs.networks.testnet);
+        tx.addInput(lastTx.tx, 0); //index 0
+
+        const fee_amount = 8000;
+        let op_amount = 0;
+        let amount = 0;
+
+        //Amounts top here, because the out address must be index 0, see top
+        if(message!=='') {
+            op_amount = 1;
+        }
+        sendTos.forEach(function(sendTo) {
+            amount += sendTo.value;
+        });
+
+        const balance = lastTx.value-amount-fee_amount-op_amount;
+        tx.addOutput(this.getLatestAddress(), balance);
+
+        sendTos.forEach(function(sendTo) {
+            tx.addOutput(sendTo.address, sendTo.value);
+        });
+
+        if(message!=='') {
+            //adding OP_RETURN Data
+            const data = new Buffer(message);
+            const dataScript = bitcoinjs.script.nullDataOutput(data);
+            tx.addOutput(dataScript, op_amount);
+        }
+
+        const keyPair = bitcoinjs.ECPair.fromWIF(this.getWif(), bitcoinjs.networks.testnet);
+        tx.sign(0, keyPair);
+
+        const buildTX = tx.build();
+        debug(buildTX.toHex());
+
+        this.bitcoinNode.sendTx(buildTX);
+        this.addUnspend(buildTX.getId(), balance);
     }
 }
 

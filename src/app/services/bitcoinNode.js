@@ -1,5 +1,6 @@
 import angular from 'angular';
 
+const EventEmitter = require('events');
 const bitcoinjs   = require('bitcoinjs-lib');
 const Filter      = require('bitcoin-filter');
 const Inventory   = require('bitcoin-inventory');
@@ -11,9 +12,11 @@ const Blockchain  = require('blockchain-spv');
 const utils       = require('bitcoin-util');
 const levelup     = require('levelup');
 const debug       = require('debug')('gotoshi:bitcoinNode');
+const pump        = require('pump');
 
-class BitcoinNode {
+class BitcoinNode extends EventEmitter {
     constructor($q, $timeout) {
+        super();
         this.$q = $q;
         this.subscriptions = [];
         //params.net.webSeeds.push('ws://localhost:8193');
@@ -35,34 +38,46 @@ class BitcoinNode {
 
         this.lastBlock = params.blockchain.checkpoints[0].height;
 
-        // create peer group
-        this.peers = new PeerGroup(params.net, {connectWeb: true, numPeers: 1, peerOpts: { relay: false }} );
-        this.peersFilter = new Filter(this.peers, {falsePositiveRate: 0.0});
+        let opts = {
+            peerGroupOpts: {connectWeb: true, numPeers: 1, peerOpts: { relay: false }, getTip: () => chain.getTip},
+            filterOpts: {falsePositiveRate: 0.0},
+            blockstreamOpts: {filtered: true}
+        };
 
         const db     = levelup('bitcoin-testnet.chain', { db: require('memdown') });
         const chain  = new Blockchain(params.blockchain, db);
-        const blockStream = new Download.BlockStream(this.peers, {filtered: true});
+
+        // create peer group
+        this.peers = new PeerGroup(params.net, opts.peerGroupOpts);
+        this.filter = new Filter(this.peers, opts.filterOpts);
+        const blockStream = new Download.BlockStream(this.peers, opts.blockstreamOpts);
 
         blockStream.on('data', (block) => {
             $timeout(()=> { //hack to trigger angular scope cycles
                 this.lastBlock = block.height;
+                this.lastBlockTime = block.header.timestamp;
             }, 0);
             if (block.height % 2016 === 0) {
                 debug('got 2016 block:', block.height);
                 localStorage.setItem('block', JSON.stringify(block));
             }
-            if (!this.rescan && block.height == 925819) {
-                this.rescan = true;
-                chain.getBlockAtHeight(params.blockchain.checkpoints[0].height, function (err, startBlock) {
-                    if (err) {
-                        debug('error looking up block at height', params.blockchain.checkpoints[0].height);
-                        return this.emit('error', err)
-                    }
+            if(this.timeout) $timeout.cancel(this.timeout);
+            this.timeout = $timeout(()=> {
+                if(this.timeout) $timeout.cancel(this.timeout);
+                debug("trigger rescan");
+                if (!this.rescan) {
+                    this.rescan = true;
+                    chain.getBlockAtHeight(params.blockchain.checkpoints[0].height, function (err, startBlock) {
+                        if (err) {
+                            debug('error looking up block at height', params.blockchain.checkpoints[0].height);
+                            return this.emit('error', err)
+                        }
 
-                    const readStream = chain.createReadStream({ from: startBlock.header.getHash(), inclusive: false });
-                    readStream.pipe(blockStream);
-                });
-            }
+                        const readStream = chain.createReadStream({ from: startBlock.header.getHash(), inclusive: false });
+                        readStream.pipe(blockStream);
+                    });
+                }
+            }, 10*1000);
         });
 
         this.peers.once('peer', () => {
@@ -76,10 +91,13 @@ class BitcoinNode {
                 readStream.pipe(blockStream);
             });
 
-            const hs = new Download.HeaderStream(this.peers);
-            chain.createLocatorStream() // locators tell us which headers to fetch
-                .pipe(hs) // pipe locators into new HeaderStream
-                .pipe(chain.createWriteStream()); // pipe headers into Blockchain
+            const headers = new Download.HeaderStream(this.peers);
+            pump(
+                chain.createLocatorStream(),
+                headers,
+                chain.createWriteStream(),
+                this._error.bind(this)
+            )
         });
 
         this.peers.once('ready', () => {
@@ -89,17 +107,7 @@ class BitcoinNode {
 
         this.peers.on('peer', (peer) => {
             debug('connected to peer', peer);
-
-            // send/receive messages
-            //peer.once('pong', () => debug('received ping response'))
-            //peer.ping( () => {
-            //    debug('sent ping')
-            //})
-            //peer.on('message', (message) => debug('received message', message))
         });
-
-        // create connections to peers
-        //this.peers.connect()
 
         this.observerCallbacks = [];
         const notifyObservers = (tx) =>{
@@ -118,6 +126,11 @@ class BitcoinNode {
         this.connect();
     }
 
+    _error (err) {
+        if (!err) return;
+        this.emit('error', err)
+    }
+
     isConnected() { return (this.connected && !this.peers.closed) }
     registerObserverCallback(callback){
         this.observerCallbacks.push(callback);
@@ -134,6 +147,23 @@ class BitcoinNode {
     getHeight() {
         return this.lastBlock;
     }
+    getSynctimeDiff() {
+        let delta = (parseInt(Date.now()/1000) - this.lastBlockTime);
+        let days = Math.floor(delta / 86400);
+        delta -= days * 86400;
+
+        // calculate (and subtract) whole hours
+        let hours = Math.floor(delta / 3600) % 24;
+        delta -= hours * 3600;
+
+        // calculate (and subtract) whole minutes
+        let minutes = Math.floor(delta / 60) % 60;
+
+        if(days>1) return days + " days";
+        else if(hours>1) return hours + " hours";
+        else if(hours<=1) return minutes + " minutes";
+        else return "?";
+    }
     sendTx(tx) {
         this.inv.broadcast(tx);
     }
@@ -147,7 +177,7 @@ class BitcoinNode {
         this.subscriptions.push(address);
 
         const hash = bitcoinjs.address.fromBase58Check(address);
-        this.peersFilter.add(new Buffer(hash.hash, 'hex'));
+        this.filter.add(new Buffer(hash.hash, 'hex'));
         if(this.peers.length>0) this.peers.send('mempool');
         deferred.resolve();
         return deferred.promise;

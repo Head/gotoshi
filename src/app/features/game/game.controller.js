@@ -3,11 +3,12 @@ import ExampleGameControls from './example-controls';
 const debug = require('debug')('gotoshi:gameController');
 
 export default class GameController {
-    constructor(game, wallet, $stateParams) {
+    constructor(game, wallet, $stateParams, $scope) {
         this.Game = game;
         this.wallet = wallet;
         this.client = {};
         this.tenuki = require('tenuki');
+        this.$scope = $scope;
 
         /*if (data['moveNumber'] === client.moveNumber() + 1) {
          if (data['pass']) {
@@ -59,9 +60,11 @@ export default class GameController {
         this.setupNewBoard(player);
     }
 
-    startNewGame(player) {
-        this.Game.startNewGame();
-        //this.setupNewBoard(player);
+    startNewGame(betInputAmount, player) {
+        this.$scope.$broadcast('show-errors-check-validity');
+        if (this.$scope.newgameForm.$valid) {
+            this.Game.startNewGame(betInputAmount);
+        }
     }
 
     setupNewBoard(player) {
@@ -108,4 +111,4 @@ export default class GameController {
     }
 }
 
-GameController.$inject = ['game', 'wallet', '$stateParams'];
+GameController.$inject = ['game', 'wallet', '$stateParams', '$scope'];

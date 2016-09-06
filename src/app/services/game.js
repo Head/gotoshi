@@ -4,9 +4,8 @@ const bitcoinjs = require('bitcoinjs-lib');
 const debug = require('debug')('gotoshi:gameService')
 
 class Game {
-    constructor(bitcoinNode, transaction, $q, wallet, $state) {
+    constructor(bitcoinNode, $q, wallet, $state) {
         this.bitcoinNode = bitcoinNode;
-        this.transaction = transaction;
         this.$q = $q;
         this.$state = $state;
         this.wallet = wallet;
@@ -88,22 +87,26 @@ class Game {
 
                     if(message === this.commands.new) {
                         this.games[gameAddress].state = 'running';
+                        this.games[gameAddress].address.value = tx.outs[1].value;
                         this.games[gameAddress].address.public = gameAddress;
                         this.games[gameAddress].players.one = pubKeyIn;
                     }else if(message === this.commands.pass) {
-                        if(this.games[gameAddress].state !== 'pass') {
-                            this.games[gameAddress].state = 'pass';
-                        }else{
-                            this.games[gameAddress].state = 'end';
+                        if(pubKeyIn === this.games[gameAddress].players.one || pubKeyIn === this.games[gameAddress].players.two) {
+                            if (this.games[gameAddress].state !== 'pass') {
+                                this.games[gameAddress].state = 'pass';
+                            } else {
+                                this.games[gameAddress].state = 'end';
+                            }
                         }
                     }else if(message === this.commands.join) {
                         this.games[gameAddress].players.two = pubKeyIn;
                     }else{
-                        //todo: verify in address in further moves!
-                        const data = JSON.parse(message);
-                        const move = {y: data.y, x: data.x, n: data.n, p: data.p};
-                        this.games[gameAddress].moves[move.n] = move;
-                        if(this.currentGame && this.currentGame.state === 'running' && this.currentGame.address.public === gameAddress) this.notifyMove(move);
+                        if(pubKeyIn === this.games[gameAddress].players.one || pubKeyIn === this.games[gameAddress].players.two) {
+                            const data = JSON.parse(message);
+                            const move = {y: data.y, x: data.x, n: data.n, p: data.p};
+                            this.games[gameAddress].moves[move.n] = move;
+                            if (this.currentGame && this.currentGame.state === 'running' && this.currentGame.address.public === gameAddress) this.notifyMove(move);
+                        }
                     }
                     this.tx.count++;
                     this.tx[this.tx.count] = message;
@@ -123,14 +126,14 @@ class Game {
     }
     sendMove(move) {
         const deferred = this.$q.defer();
-        this.transaction.sendTxTo([{address: this.currentGame.address.public, value: 1}], JSON.stringify(move));
+        this.wallet.sendTxTo([{address: this.currentGame.address.public, value: 1}], JSON.stringify(move));
         this.currentGame.moves[move.n] = move;
         deferred.resolve();
         return deferred.promise;
     }
     sendPass() {
         const deferred = this.$q.defer();
-        this.transaction.sendTxTo([{address: this.currentGame.address.public, value: 1}], 'pass');
+        this.wallet.sendTxTo([{address: this.currentGame.address.public, value: 1}], 'pass');
         this.currentGame.moves.push('pass');
         deferred.resolve();
         return deferred.promise;
@@ -153,7 +156,7 @@ class Game {
             {address: this.masterAddress, value: 10000}
         ];
 
-        this.transaction.sendTxTo(sendTos, this.commands.join);
+        this.wallet.sendTxTo(sendTos, this.commands.join);
         this.currentGame.players.two = this.wallet.getLatestAddress();
     }
     notifyMove(move) {
@@ -164,30 +167,31 @@ class Game {
         this.currentGame.address.public = pubKey;
         this.games[pubKey] = this.currentGame;
     }
-    startNewGame() {
+    startNewGame(betAmount) {
         this.currentGame = angular.copy(this.gameInitState);
 
         const keyPair = bitcoinjs.ECPair.makeRandom({network: bitcoinjs.networks.testnet}); //todo multisig 2of2?
         this.currentGame.address.public = keyPair.getAddress();
         this.currentGame.address.wif = keyPair.toWIF();
+        this.currentGame.address.value = betAmount*100000000;
         this.currentGame.state = 'running';
         this.currentGame.players.one = this.wallet.getLatestAddress();
 
         this.bitcoinNode.subscribe(this.currentGame.address.public);
 
         const sendTos = [
-            {address: this.currentGame.address.public, value: 10000},
+            {address: this.currentGame.address.public, value: betAmount*100000000},
             {address: this.masterAddress, value: 10000} //todo use vanity address
         ];
 
-        this.transaction.sendTxTo(sendTos, this.commands.new);
+        this.wallet.sendTxTo(sendTos, this.commands.new);
         this.games[this.currentGame.address.public] = this.currentGame;
         this.$state.transitionTo('game.play', {'pubKey': this.currentGame.address.public});
         return this.currentGame;
     }
 }
 
-Game.$inject = ['bitcoinNode', 'transaction', '$q', 'wallet', '$state'];
+Game.$inject = ['bitcoinNode', '$q', 'wallet', '$state'];
 
 export default angular.module('services.game', [])
     .service('game', Game)

@@ -26,7 +26,7 @@
           <li><a ui-sref="about">About</a></li>
           <li ng-controller="HomeController as home">
             <button ng-show="home.wallet.isConnected()" type="button" class="btn btn-default btn-lg" title="actual block height">
-              <span class="glyphicon glyphicon-object-align-horizontal" aria-hidden="true"> {{home.wallet.getHeight()}}</span>
+              <span class="glyphicon glyphicon-object-align-horizontal" aria-hidden="true"> {{home.wallet.getHeight()}} - {{home.wallet.getSynctimeDiff()}}</span>
             </button>
 
             <button type="button" class="btn btn-default btn-lg" title="last incoming transaction">
@@ -45,7 +45,7 @@
             </button>
 
             <button type="button" class="btn btn-default btn-lg">
-              <span class="glyphicon glyphicon-bitcoin" aria-hidden="true" title="your balance"> {{home.wallet.getBalance()}}</span>
+              <span class="glyphicon glyphicon-bitcoin" aria-hidden="true" title="your balance"> {{home.wallet.getBalance() / 100000000}}</span>
             </button>
           </li>
 
@@ -53,8 +53,7 @@
       </div><!--/.nav-collapse -->
     </div>
   </nav>
-
-  <div class="container">
+  <div class="main-container">
     <ui-view></ui-view>
   </div>
 </body>

@@ -1,7 +1,28 @@
-<div>
-    <div class="panel panel-default">
+<div class="page-header">
+    <div class="container">
+        <h1><i class="fa fa-qrcode"></i> Bitcoin GO all games</h1>
+    </div>
+</div>
+
+<div class="container">
+    <div ng-show="g.wallet.isConnected() && g.wallet.getBalance() > 0" class="panel panel-default">
         <div class="panel-body">
-            <button ng-show="g.wallet.isConnected() && g.wallet.getBalance() > 0" type="button" class="btn btn-success" data-ng-click="g.startNewGame('black')">Start new game</button>
+            <p>Here you can start a new game. Once started the funds will be sent from your wallet to the game address. A second player have to join and set the same amount.</p>
+
+            <form name="newgameForm" class="form-inline" novalidate>
+                <div class="form-group col-xs-3" show-errors='{showSuccess: true}'>
+                    <label class="sr-only" for="betInputAmount">Amount (in bitcoins)</label>
+                    <div class="input-group col-xs-12">
+                        <input type="number" class="form-control" name="betInputAmount" id="betInputAmount" placeholder="Amount" ng-model="betInputAmount" step="0.05" ng-min="0" ng-max="{{g.wallet.getBalance()}}" min="0" max="99" required>
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-bitcoin" aria-hidden="true"></span></span>
+                    </div>
+
+                    <p class="help-block" ng-show="newgameForm.betInputAmount.$error.required">The amount is needed to start a new game</p>
+                    <p class="help-block" ng-show="newgameForm.betInputAmount.$error.number">Must be a value in Bitcoins like 1.5 or 0.0005</p>
+                    <p class="help-block" ng-show="newgameForm.betInputAmount.$error.max">The amount cannot be higher then your wallet balance</p>
+                </div>
+                <button type="button" class="btn btn-success" data-ng-click="g.startNewGame(betInputAmount, 'black')">Start new game</button>
+            </form>
         </div>
     </div>
 
@@ -13,7 +34,7 @@
                 <span ng-show="game.state == 'end'" class="glyphicon glyphicon-stop" aria-hidden="true"></span>
                 {{game.address.public | limitTo: 8}}<br/>
                 {{game.players.one | limitTo: 5}} VS {{game.players.two | limitTo: 5}}<br/>
-                Move: {{game.moves.length}}
+                Moves: {{game.moves.length}} | Value: {{game.address.value/100000000 | limitTo: 4}}
             </a>
         </div>
     </div>
