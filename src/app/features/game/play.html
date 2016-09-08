@@ -14,10 +14,10 @@
       </div>
 
       <div class="col-md-8 well controls" ng-show="g.Game.currentGame.players.one != null">
-        <button class="btn btn-default" ng-show="g.Game.currentGame.state == 'running' && g.Game.currentGame.players.two == null && !g.wallet.isOwnAddress(g.Game.currentGame.players.one)" type="submit" class="submit_button" data-ng-click="g.Game.joinGame()">Join</button>
+        <button class="btn btn-default" ng-show="g.Game.currentGame.state == 'running' && g.Game.currentGame.players.two == null && !g.wallet.isOwnAddress(g.Game.currentGame.players.one)" type="submit" data-ng-click="g.Game.joinGame()">Join</button>
 
         <div class="buttons">
-          <button class="btn btn-default" ng-show="g.wallet.isOwnAddress(g.Game.currentGame.players.two) || g.wallet.isOwnAddress(g.Game.currentGame.players.one)" type="submit" class="submit_button pass" data-ng-click="g.client.pass()">Pass</button>
+          <button class="btn btn-default" ng-show="g.wallet.isOwnAddress(g.Game.currentGame.players.two) || g.wallet.isOwnAddress(g.Game.currentGame.players.one)" type="submit" data-ng-click="g.client.pass()">Pass</button>
         </div>
 
         <div class="game-info"><p></p></div>

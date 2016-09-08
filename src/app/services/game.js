@@ -145,14 +145,13 @@ class Game {
         this.notifyObservers({type:'start', game: game});
         this.currentGame.moves.forEach((move) => {this.notifyMove(move)});
         this.bitcoinNode.subscribe(this.currentGame.address.public);
-
     }
     joinGame() {
         if(this.currentGame.players.two !== null) debug('player two not null');
         if(this.currentGame.players.one === this.wallet.getLatestAddress()) debug('player one wallets match');
         if(this.currentGame.players.two !== null || this.currentGame.players.one === this.wallet.getLatestAddress()) return;
         const sendTos = [
-            {address: this.currentGame.address.public, value: 10000},
+            {address: this.currentGame.address.public, value: this.currentGame.address.value},
             {address: this.masterAddress, value: 10000}
         ];
 
