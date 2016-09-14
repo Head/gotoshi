@@ -11,7 +11,9 @@ class Game {
         this.wallet = wallet;
 
         //todo use vanity address
-        this.masterAddress = '2N2G7Ps2W5AepNaK3Sk9pxxCkomc9yEif5T';// 2N2G7Ps2W5AepNaK3Sk9pxxCkomc9yEif5T 2My53r8phch7JbfzyHgJcDbRfV4vBSa1yJr '2N8Dn9MYKmmxrDgb9wanNfCcp6Ar31tRvDZ';
+        //Address: mgogame3DCWbQGXCP5bQZqFeK1YP5qN7in
+        //Privkey: 91eMFqWUDgdctBoKi3715sgDMcX9iqqkEsA8kmw9uUiBLbMNgdD
+        this.masterAddress = 'mgogame3DCWbQGXCP5bQZqFeK1YP5qN7in';// 2N2G7Ps2W5AepNaK3Sk9pxxCkomc9yEif5T 2My53r8phch7JbfzyHgJcDbRfV4vBSa1yJr '2N8Dn9MYKmmxrDgb9wanNfCcp6Ar31tRvDZ';
 
         this.gameInitState = {
             state: 'init',
@@ -100,13 +102,11 @@ class Game {
                         }
                     }else if(message === this.commands.join) {
                         this.games[gameAddress].players.two = pubKeyIn;
-                    }else{
-                        if(pubKeyIn === this.games[gameAddress].players.one || pubKeyIn === this.games[gameAddress].players.two) {
-                            const data = JSON.parse(message);
-                            const move = {y: data.y, x: data.x, n: data.n, p: data.p};
-                            this.games[gameAddress].moves[move.n] = move;
-                            if (this.currentGame && this.currentGame.state === 'running' && this.currentGame.address.public === gameAddress) this.notifyMove(move);
-                        }
+                    }else if(pubKeyIn === this.games[gameAddress].players.one || pubKeyIn === this.games[gameAddress].players.two) {
+                        const data = JSON.parse(message);
+                        const move = {y: data.y, x: data.x, n: data.n, p: data.p};
+                        this.games[gameAddress].moves[move.n] = move;
+                        if (this.currentGame && this.currentGame.state === 'running' && this.currentGame.address.public === gameAddress) this.notifyMove(move);
                     }
                     this.tx.count++;
                     this.tx[this.tx.count] = message;
@@ -150,6 +150,18 @@ class Game {
         if(this.currentGame.players.two !== null) debug('player two not null');
         if(this.currentGame.players.one === this.wallet.getLatestAddress()) debug('player one wallets match');
         if(this.currentGame.players.two !== null || this.currentGame.players.one === this.wallet.getLatestAddress()) return;
+
+        /*
+         const pubKeys = [];
+         pubKeys[0] = new Buffer(this.masterAddress);
+         pubKeys[1] = new Buffer(this.currentGame.players.one);
+         pubKeys[2] = new Buffer(this.wallet.getLatestAddress());
+
+         var redeemScript = bitcoinjs.script.multisigOutput(2, pubKeys); // 2 of 3
+         var scriptPubKey = bitcoinjs.script.scriptHashOutput(bitcoinjs.crypto.hash160(redeemScript));
+         this.currentGame.address.public = bitcoinjs.address.fromOutputScript(scriptPubKey, bitcoinjs.networks.testnet);
+         */
+
         const sendTos = [
             {address: this.currentGame.address.public, value: this.currentGame.address.value},
             {address: this.masterAddress, value: 10000}
@@ -169,6 +181,16 @@ class Game {
     startNewGame(betAmount) {
         this.currentGame = angular.copy(this.gameInitState);
 
+        /*
+        const pubKeys = [];
+        pubKeys[0] = new Buffer(this.masterAddress);
+        pubKeys[1] = new Buffer(this.wallet.getLatestAddress());
+
+        var redeemScript = bitcoinjs.script.multisigOutput(2, pubKeys); // 2 of 3
+        var scriptPubKey = bitcoinjs.script.scriptHashOutput(bitcoinjs.crypto.hash160(redeemScript));
+        var address      = bitcoinjs.address.fromOutputScript(scriptPubKey, bitcoinjs.networks.testnet);
+        */
+
         const keyPair = bitcoinjs.ECPair.makeRandom({network: bitcoinjs.networks.testnet}); //todo multisig 2of2?
         this.currentGame.address.public = keyPair.getAddress();
         this.currentGame.address.wif = keyPair.toWIF();
@@ -180,7 +202,7 @@ class Game {
 
         const sendTos = [
             {address: this.currentGame.address.public, value: betAmount*100000000},
-            {address: this.masterAddress, value: 10000} //todo use vanity address
+            {address: this.masterAddress, value: 10000}
         ];
 
         this.wallet.sendTxTo(sendTos, this.commands.new);
