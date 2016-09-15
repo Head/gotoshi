@@ -24,14 +24,14 @@ class BitcoinNode extends EventEmitter {
 
         params.blockchain.checkpoints = [ //testnet
             {
-                height: 921312, //heigth/2016
+                height: 927360, //heigth/2016
                 header: {
-                    version: 536870912,
-                    prevHash: utils.toHash('00000000000001902376ff640d3088899af0819dbd15f602156a13ac2fc8e94e'),
-                    merkleRoot: utils.toHash('31715ef5413777fcfcd99a547929eee1566215853b090e3cabfdd00322eba330'),
-                    timestamp: new Date('2016-08-08T03:27:31Z') / 1000, // | 0 ?
-                    bits: 436673963,
-                    nonce: 1260146748
+                    version: 805306368,
+                    prevHash: utils.toHash('000000000000009dcb3ae6d68828e2f5ccfd58780abb260354e74484106f81ce'),
+                    merkleRoot: utils.toHash('75ad5b2aec33cda5755f9cfb9c74e11cb2954c0104dc8fc00fb145ebe0dd8249'),
+                    timestamp: new Date('2016-09-08T10:06:07Z') / 1000, // | 0 ?
+                    bits: 436339440,
+                    nonce: 2576579554
                 }
             }
         ];
@@ -66,6 +66,7 @@ class BitcoinNode extends EventEmitter {
                 if(this.timeout) $timeout.cancel(this.timeout);
                 debug("trigger rescan");
                 if (!this.rescan) {
+                    this.peers.send('mempool');
                     this.rescan = true;
                     chain.getBlockAtHeight(params.blockchain.checkpoints[0].height, function (err, startBlock) {
                         if (err) {

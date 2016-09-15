@@ -10,6 +10,8 @@ import game from './features/game';
 
 require( 'angular-bootstrap-show-errors' );
 
+import popover from 'angular-ui-bootstrap/src/popover';
+
 //https://angular-ui.github.io/bootstrap/
-angular.module('app', [uirouter, 'ui.bootstrap.showErrors', home, game, require( 'angular-bootstrap-npm' )])
+angular.module('app', [uirouter, 'ui.bootstrap.showErrors', home, game, popover])
   .config(routing);

@@ -29,7 +29,29 @@
               <span class="glyphicon glyphicon-object-align-horizontal" aria-hidden="true"> {{home.wallet.getHeight()}} - {{home.wallet.getSynctimeDiff()}}</span>
             </button>
 
-            <button type="button" class="btn btn-default btn-lg" title="last incoming transaction">
+            <script type="text/ng-template" id="transactionsPopover.html">
+              <div>
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Tx</th>
+                      <th>Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="tx in home.wallet.wallet.unspend track by $index">
+                      <td>{{tx.tx | limitTo: 9}}...</td>
+                      <td>{{tx.value / 100000000}}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </script>
+
+            <button type="button" class="btn btn-default btn-lg"
+                    popover-placement="bottom"
+                    uib-popover-template="'transactionsPopover.html'"
+                    popover-title="last incoming transaction">
               <span class="glyphicon glyphicon-link" aria-hidden="true"> {{home.wallet.getLastTX() | limitTo: 9 }}...</span>
             </button>
 

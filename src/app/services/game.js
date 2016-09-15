@@ -102,6 +102,24 @@ class Game {
                         }
                     }else if(message === this.commands.join) {
                         this.games[gameAddress].players.two = pubKeyIn;
+                        this.games[gameAddress].address.paymentFromTwo = tx.outs[2].pubKey;
+
+                        const pubKeys = [];
+                        pubKeys[0] = new Buffer(this.masterAddress);
+                        pubKeys[1] = new Buffer(this.games[gameAddress].players.one);
+                        pubKeys[2] = new Buffer(this.games[gameAddress].players.two);
+                        pubKeys[3] = new Buffer(this.games[gameAddress].address.public);
+
+                        const redeemScript = bitcoinjs.script.multisigOutput(3, pubKeys); // 3 of 4
+                        const scriptPubKey = bitcoinjs.script.scriptHashOutput(bitcoinjs.crypto.hash160(redeemScript));
+                        const payAddress = bitcoinjs.address.fromOutputScript(scriptPubKey, bitcoinjs.networks.testnet);
+
+                        if(this.games[gameAddress].address.paymentFromTwo === payAddress) {
+                            this.games[gameAddress].address.payment = payAddress;
+                            if(this.wallet.isOwnAddress(this.currentGame.players.one)) {
+                                this.wallet.spendOpenGame(gameAddress, payAddress);
+                            }
+                        }
                     }else if(pubKeyIn === this.games[gameAddress].players.one || pubKeyIn === this.games[gameAddress].players.two) {
                         const data = JSON.parse(message);
                         const move = {y: data.y, x: data.x, n: data.n, p: data.p};
@@ -151,24 +169,28 @@ class Game {
         if(this.currentGame.players.one === this.wallet.getLatestAddress()) debug('player one wallets match');
         if(this.currentGame.players.two !== null || this.currentGame.players.one === this.wallet.getLatestAddress()) return;
 
-        /*
-         const pubKeys = [];
-         pubKeys[0] = new Buffer(this.masterAddress);
-         pubKeys[1] = new Buffer(this.currentGame.players.one);
-         pubKeys[2] = new Buffer(this.wallet.getLatestAddress());
+        this.currentGame.players.two = this.wallet.getLatestAddress();
 
-         var redeemScript = bitcoinjs.script.multisigOutput(2, pubKeys); // 2 of 3
-         var scriptPubKey = bitcoinjs.script.scriptHashOutput(bitcoinjs.crypto.hash160(redeemScript));
-         this.currentGame.address.public = bitcoinjs.address.fromOutputScript(scriptPubKey, bitcoinjs.networks.testnet);
-         */
+        debug("player two pay for game");
+        const pubKeys = [];
+        pubKeys[0] = new Buffer(this.masterAddress);
+        pubKeys[1] = new Buffer(this.currentGame.players.one);
+        pubKeys[2] = new Buffer(this.currentGame.players.two);
+        pubKeys[3] = new Buffer(this.currentGame.address.public);
+
+        const redeemScript = bitcoinjs.script.multisigOutput(3, pubKeys); // 3 of 4
+        const scriptPubKey = bitcoinjs.script.scriptHashOutput(bitcoinjs.crypto.hash160(redeemScript));
+        const payAddress = bitcoinjs.address.fromOutputScript(scriptPubKey, bitcoinjs.networks.testnet);
+
+        this.games[this.currentGame.address.public].address.payment = payAddress;
 
         const sendTos = [
-            {address: this.currentGame.address.public, value: this.currentGame.address.value},
+            {address: this.currentGame.address.public, value: 1},
+            {address: this.currentGame.address.payment, value: this.currentGame.address.value},
             {address: this.masterAddress, value: 10000}
         ];
 
         this.wallet.sendTxTo(sendTos, this.commands.join);
-        this.currentGame.players.two = this.wallet.getLatestAddress();
     }
     notifyMove(move) {
         this.notifyObservers({type:'move', move: move});
@@ -181,19 +203,8 @@ class Game {
     startNewGame(betAmount) {
         this.currentGame = angular.copy(this.gameInitState);
 
-        /*
-        const pubKeys = [];
-        pubKeys[0] = new Buffer(this.masterAddress);
-        pubKeys[1] = new Buffer(this.wallet.getLatestAddress());
-
-        var redeemScript = bitcoinjs.script.multisigOutput(2, pubKeys); // 2 of 3
-        var scriptPubKey = bitcoinjs.script.scriptHashOutput(bitcoinjs.crypto.hash160(redeemScript));
-        var address      = bitcoinjs.address.fromOutputScript(scriptPubKey, bitcoinjs.networks.testnet);
-        */
-
-        const keyPair = bitcoinjs.ECPair.makeRandom({network: bitcoinjs.networks.testnet}); //todo multisig 2of2?
+        const keyPair = bitcoinjs.ECPair.makeRandom({network: bitcoinjs.networks.testnet});
         this.currentGame.address.public = keyPair.getAddress();
-        this.currentGame.address.wif = keyPair.toWIF();
         this.currentGame.address.value = betAmount*100000000;
         this.currentGame.state = 'running';
         this.currentGame.players.one = this.wallet.getLatestAddress();
@@ -201,11 +212,12 @@ class Game {
         this.bitcoinNode.subscribe(this.currentGame.address.public);
 
         const sendTos = [
-            {address: this.currentGame.address.public, value: betAmount*100000000},
+            {address: this.currentGame.address.public, value: this.currentGame.address.value},
             {address: this.masterAddress, value: 10000}
         ];
 
-        this.wallet.sendTxTo(sendTos, this.commands.new);
+        let txID = this.wallet.sendTxTo(sendTos, this.commands.new);
+        this.wallet.saveOpenGame(txID, keyPair, this.currentGame.address.value);
         this.games[this.currentGame.address.public] = this.currentGame;
         this.$state.transitionTo('game.play', {'pubKey': this.currentGame.address.public});
         return this.currentGame;

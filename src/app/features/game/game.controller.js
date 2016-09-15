@@ -34,8 +34,8 @@ export default class GameController {
     gotMessage(message) {
         debug('gotMessage', message);
         if (message.type === 'start') {
-            let player = 'white';
-            if (this.wallet.isOwnAddress(message.game.players.one)) player = 'black';
+            let player = 'black';
+            if (this.wallet.isOwnAddress(message.game.players.one)) player = 'white';
             this.resumeGame(player);
         } else if (message.type === 'pass') {
             this.client.receivePass();

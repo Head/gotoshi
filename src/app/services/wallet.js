@@ -17,7 +17,7 @@ const bitcoinjs = require('bitcoinjs-lib');
 class Wallet {
     constructor(bitcoinNode) {
         this.bitcoinNode = bitcoinNode;
-        this.wallet = {balance:56468878, lastTX: '', address: '', unspend: []};
+        this.wallet = {balance:0, lastTX: '', address: {}, unspend: [], openGames: []};
 
         debug('in init()');
         if(this.load()) {
@@ -49,7 +49,11 @@ class Wallet {
 
                     let prevOutTxId = [].reverse.call(new Buffer(tx.ins[0].hash)).toString('hex');
                     if(pubKeyIn.getAddress() === pubKey) { //send to self
-                        this.wallet.unspend.splice(this.wallet.unspend.findIndex(x => x.tx === prevOutTxId), 1);
+                        let index = this.wallet.unspend.findIndex(x => x.tx === prevOutTxId);
+                        if(index !== -1) {
+                            this.wallet.balance -= this.wallet.unspend[index].value;
+                            this.wallet.unspend.splice(index, 1);
+                        }
                     }
 
                     this.addUnspend(tx.getId(), output.value.toNumber());
@@ -86,16 +90,21 @@ class Wallet {
     getBalance() {
         return this.wallet.balance;
     }
-    getUnspend() {
-        let unspend = this.wallet.unspend.shift();
-        if(typeof unspend === 'undefined') return false;
+    getUnspend(amountSum) {
+        let index = this.wallet.unspend.findIndex(x => x.value >= amountSum);
+        if(index == -1) return false;
+        let unspend = this.wallet.unspend[index];
         this.wallet.balance -= unspend.value;
+        this.wallet.unspend.splice(index, 1);
+        this.set(this.wallet);
         return unspend;
     }
     addUnspend(tx, balance) {
+        if(this.wallet.unspend.findIndex(x => x.tx === tx) > -1) return;
         this.wallet.unspend.push({tx: tx, value: balance});
         this.wallet.lastTX = tx;
         this.wallet.balance += balance;
+        this.set(this.wallet);
     }
     getWif() {
         return this.wallet.address.wif;
@@ -124,12 +133,31 @@ class Wallet {
         this.bitcoinNode.subscribe(address.address).then(function() {});
     }
 
+    saveOpenGame(txID, keyPair, value) {
+        this.wallet.openGames[keyPair.getAddress()] = {txId: txID, keypair: keyPair, value: value};
+        this.set(this.wallet);
+    }
+
+    spendOpenGame(from, to) {
+        let lastTx = this.wallet.openGames[from];
+        const tx = new bitcoinjs.TransactionBuilder(bitcoinjs.networks.testnet);
+        tx.addInput(lastTx.txId, 1); //index 1
+        tx.addOutput(to, lastTx.value-8000);
+        tx.sign(0, lastTx.keypair);
+
+        const buildTX = tx.build();
+        debug("pay to game", buildTX.toHex());
+
+        this.bitcoinNode.sendTx(buildTX);
+
+        delete this.wallet.openGames[from];
+        this.set(this.wallet);
+    }
+
     sendTxTo(sendTos, message) {
-        let lastTx = this.getUnspend();
-        if(typeof lastTx !== 'object') return;
+        debug("send tx", sendTos);
 
         const tx = new bitcoinjs.TransactionBuilder(bitcoinjs.networks.testnet);
-        tx.addInput(lastTx.tx, 0); //index 0
 
         const fee_amount = 8000;
         let op_amount = 0;
@@ -143,7 +171,16 @@ class Wallet {
             amount += sendTo.value;
         });
 
-        const balance = lastTx.value-amount-fee_amount-op_amount;
+        const amountSum = amount+fee_amount+op_amount;
+        let lastTx = this.getUnspend(amountSum);
+        if(typeof lastTx !== 'object') {
+            debug("no last TX found");
+            return;
+        }
+
+        tx.addInput(lastTx.tx, 0); //index 0
+
+        const balance = lastTx.value-amountSum;
         tx.addOutput(this.getLatestAddress(), balance);
 
         sendTos.forEach(function(sendTo) {
@@ -165,6 +202,9 @@ class Wallet {
 
         this.bitcoinNode.sendTx(buildTX);
         this.addUnspend(buildTX.getId(), balance);
+        this.set(this.wallet);
+
+        return buildTX.getId();
     }
 }
 
