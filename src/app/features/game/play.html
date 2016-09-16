@@ -2,7 +2,7 @@
     <div class="container">
         <h1><i class="fa fa-qrcode"></i> Bitcoin GO game</h1>
         <h2 class="tagline wrapit semi">{{g.Game.currentGame.address.public}} {{g.Game.currentGame.address.payment | limitTo: 6}}</h2>
-        <p ng-show="g.Game.currentGame.state == 'running'">Player {{g.Game.currentGame.players.one}} VS {{g.Game.currentGame.players.two || 'open'}}</p>
+        <p ng-show="g.Game.currentGame.state == 'running'">Player <span class="playerOne">{{g.Game.currentGame.players.one}}</span> VS <span class="playerTwo">{{g.Game.currentGame.players.two || 'open'}}</span></p>
         <p ng-show="g.Game.currentGame.address.value > 0">Value: {{g.Game.currentGame.address.value/100000000}} Bitcoin</p>
     </div>
 </div>

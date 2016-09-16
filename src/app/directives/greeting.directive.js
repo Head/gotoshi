@@ -6,7 +6,7 @@ function greeting() {
     scope: {
       name: '='
     },
-    template: '<h1>Hello, {{name}}</div>'
+    template: '<h1>Hello, {{name}}</h1><h2>welcome to</h2>'
   }
 }
 

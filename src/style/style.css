@@ -2,7 +2,29 @@
 
 body {
     font-family:'helvetica', arial, sans-serif;
-    background: #000;
+    background: #FFF;
+}
+
+.navbar-brand {
+    text-indent: 101%;
+    overflow: hidden;
+    white-space: nowrap;
+    background-image: url('logo.png');
+    background-repeat: no-repeat;
+    background-size: 100%;
+    display: block;
+    width: 139px;
+}
+
+.logoBig {
+    background-image: url('logoBig.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    display: block;
+    background-size: contain;
+    width: 100%;
+    height: 0;
+    padding-top: 95.86%;
 }
 
 .form-group .help-block {
@@ -22,24 +44,29 @@ body {
 .page-header {
     padding:60px 0;
     font-size:1.2em;
-    color: #fff;
-    background: #371456 url(chain.svg) left center no-repeat;
-    background: url(chain.svg) left center no-repeat,
-    -moz-linear-gradient(top, rgb(121, 95, 0) 0%, rgb(225, 188, 106) 100%);
-    background: url(chain.svg) left center no-repeat,
-    -webkit-gradient(linear, left top, left bottom, color-stop(0%, #59218c), color-stop(100%, #371456));
-    background: url(chain.svg) left center no-repeat,
-    -webkit-linear-gradient(top, rgb(121, 95, 0) 0%, rgb(225, 188, 106) 100%);
-    background: url(chain.svg) left center no-repeat,
-    linear-gradient(to bottom, rgb(121, 95, 0) 0%, rgb(225, 188, 106) 100%);
+    color: #efefef;
+    background: url(bg.jpg)
 }
 .page-header .tagline {
     font-size: 1.2em;
     margin: 0;
 }
+
+.page-header .container {
+    text-shadow: 2px 2px 2px #9a6a00;
+}
+
 .wrapit {
     word-wrap: break-word;
 }
 .semi {
     opacity: .7;
+}
+
+.playerOne {
+    color: #333;
+}
+
+.playerTwo {
+    color: #fff;
 }

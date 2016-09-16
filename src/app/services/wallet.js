@@ -139,6 +139,7 @@ class Wallet {
     }
 
     spendOpenGame(from, to) {
+        if(typeof this.wallet.openGames[from] === 'undefined') return;
         let lastTx = this.wallet.openGames[from];
         const tx = new bitcoinjs.TransactionBuilder(bitcoinjs.networks.testnet);
         tx.addInput(lastTx.txId, 1); //index 1

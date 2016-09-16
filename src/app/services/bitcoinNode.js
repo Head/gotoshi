@@ -162,7 +162,7 @@ class BitcoinNode extends EventEmitter {
 
         if(days>1) return days + " days";
         else if(hours>1) return hours + " hours";
-        else if(hours<=1) return minutes + " minutes";
+        else if(hours<=1) return minutes + " min";
         else return "?";
     }
     sendTx(tx) {

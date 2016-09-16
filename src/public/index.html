@@ -19,14 +19,17 @@
         </button>
         <a class="navbar-brand" href="#">Gotoshi</a>
       </div>
-      <div id="navbar" class="navbar-collapse collapse">
+      <div id="navbar" class="navbar-collapse collapse" ng-controller="HomeController as home">
         <ul class="nav navbar-nav">
-          <li><a ui-sref="home">Home</a></li>
-          <li class="active"><a ui-sref="game.list">Games</a></li>
-          <li><a ui-sref="about">About</a></li>
-          <li ng-controller="HomeController as home">
-            <button ng-show="home.wallet.isConnected()" type="button" class="btn btn-default btn-lg" title="actual block height">
+          <li ng-class="{ active: !home.isActive('/game') && !home.isActive('/about')}"><a ui-sref="home">Home</a></li>
+          <li ng-class="{ active: home.isActive('/game')}"><a ui-sref="game.list">Games</a></li>
+          <li ng-class="{ active: home.isActive('/about')}"><a ui-sref="about">About</a></li>
+          <li>
+            <button ng-show="home.wallet.isConnected()" type="button" class="btn btn-default btn-lg hidden-md hidden-sm" title="actual block height">
               <span class="glyphicon glyphicon-object-align-horizontal" aria-hidden="true"> {{home.wallet.getHeight()}} - {{home.wallet.getSynctimeDiff()}}</span>
+            </button>
+            <button ng-show="home.wallet.isConnected()" type="button" class="btn btn-default btn-lg visible-md-inline" title="actual block height">
+              <span class="glyphicon glyphicon-object-align-horizontal" aria-hidden="true"> {{home.wallet.getSynctimeDiff()}}</span>
             </button>
 
             <script type="text/ng-template" id="transactionsPopover.html">
@@ -48,7 +51,7 @@
               </div>
             </script>
 
-            <button type="button" class="btn btn-default btn-lg"
+            <button type="button" class="btn btn-default btn-lg hidden-sm"
                     popover-placement="bottom"
                     uib-popover-template="'transactionsPopover.html'"
                     popover-title="last incoming transaction">

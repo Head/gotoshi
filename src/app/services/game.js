@@ -120,9 +120,9 @@ class Game {
                                 this.wallet.spendOpenGame(gameAddress, payAddress);
                             }
                         }
-                    }else if(pubKeyIn === this.games[gameAddress].players.one || pubKeyIn === this.games[gameAddress].players.two) {
+                    }else{
                         const data = JSON.parse(message);
-                        const move = {y: data.y, x: data.x, n: data.n, p: data.p};
+                        const move = {y: data.y, x: data.x, n: data.n, p: data.p, pk: pubKeyIn};
                         this.games[gameAddress].moves[move.n] = move;
                         if (this.currentGame && this.currentGame.state === 'running' && this.currentGame.address.public === gameAddress) this.notifyMove(move);
                     }

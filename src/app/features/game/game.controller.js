@@ -45,7 +45,9 @@ export default class GameController {
             debug('got move ' + message.move.n + ' and try to do move no ' + this.client.moveNumber() + '/' + this.Game.currentGame.moves.length);
             while (typeof this.Game.currentGame.moves[this.client.moveNumber()] !== 'undefined') {
                 debug('do move no ' + this.client.moveNumber());
-                this.client._game.playAt(this.Game.currentGame.moves[this.client.moveNumber()].y, this.Game.currentGame.moves[this.client.moveNumber()].x);
+                //if(this.Game.currentGame.moves[this.client.moveNumber()].pk === this.Game.currentGame.players.one || this.Game.currentGame.moves[this.client.moveNumber()].pk === this.Game.currentGame.players.two) {
+                    this.client._game.playAt(this.Game.currentGame.moves[this.client.moveNumber()].y, this.Game.currentGame.moves[this.client.moveNumber()].x);
+                //}
             }
         }
     }
