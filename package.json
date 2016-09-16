@@ -8,7 +8,7 @@
     "test": "karma start",
     "test-watch": "karma start --auto-watch --no-single-run",
     "develop": "npm run server",
-    "start": "webcoin-bridge --network webcoin-bitcoin-testnet --port 8193"
+    "start": "webcoin-bridge --network webcoin-bitcoin-testnet --port ${PORT:=8193}"
   },
   "repository": {
     "type": "git",
