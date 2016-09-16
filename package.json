@@ -7,7 +7,8 @@
     "server": "webpack-dev-server --history-api-fallback --inline --progress",
     "test": "karma start",
     "test-watch": "karma start --auto-watch --no-single-run",
-    "start": "npm run server"
+    "develop": "npm run server",
+    "start": "webcoin-bridge --network webcoin-bitcoin-testnet --port 8193"
   },
   "repository": {
     "type": "git",
@@ -33,6 +34,7 @@
     "blockchain-download": "latest",
     "webcoin-bitcoin": "latest",
     "webcoin-bitcoin-testnet": "latest",
+    "webcoin-bridge": "latest",
     "bitcoinjs-lib": "latest",
     "levelup": "latest",
     "memdown": "latest",

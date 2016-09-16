@@ -45,8 +45,11 @@ body {
     padding:60px 0;
     font-size:1.2em;
     color: #efefef;
-    background: url(bg.jpg)
+    background: url(bg.jpg);
+    background-size: cover;
+    background-position: center;
 }
+
 .page-header .tagline {
     font-size: 1.2em;
     margin: 0;
