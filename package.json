@@ -1,6 +1,9 @@
 {
   "name": "angular-webpack-workflow",
   "version": "1.0.0",
+  "engines": {
+    "node": "6.2.1"
+  },
   "description": "A workflow for Angular made with Webpack",
   "scripts": {
     "build": "rimraf dist && webpack --bail --progress --profile",
