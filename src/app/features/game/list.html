@@ -5,31 +5,112 @@
 </div>
 
 <div class="container">
-    <div ng-show="g.wallet.isConnected() && g.wallet.getBalance() > 0" class="panel panel-default">
-        <div class="panel-body">
-            <p>Here you can start a new game. Once started the funds will be sent from your wallet to the game address. A second player have to join and set the same amount.</p>
+    <div class="row">
+        <div ng-show="g.wallet.isConnected() && g.wallet.getBalance() > 0" class="panel panel-default col-xs-6 col-md-6">
+            <div class="panel-body">
+                <h2>Start new game</h2>
+                <p>Here you can start a new game. Once started the funds will be sent from your wallet to the game address. A second player have to join and set the same amount.</p>
 
-            <form name="newgameForm" class="form-inline" novalidate>
-                <div class="form-group col-xs-3" show-errors='{showSuccess: true}'>
-                    <label class="sr-only" for="betInputAmount">Amount (in bitcoins)</label>
+                <form name="newgameForm" class="form-inline" novalidate>
+                    <div class="form-group col-xs-6" show-errors='{showSuccess: true}'>
+                        <label class="sr-only" for="betInputAmount">Amount (in bitcoins)</label>
+                        <div class="input-group col-xs-12">
+                            <input type="number" class="form-control" name="betInputAmount" id="betInputAmount" placeholder="Amount" ng-model="betInputAmount" step="0.05" ng-min="0" ng-max="{{g.wallet.getBalance()}}" min="0" max="99" required>
+                            <span class="input-group-addon"><span class="glyphicon glyphicon-bitcoin" aria-hidden="true"></span></span>
+                        </div>
+
+                        <p class="help-block" ng-show="newgameForm.betInputAmount.$error.required">The amount is needed to start a new game</p>
+                        <p class="help-block" ng-show="newgameForm.betInputAmount.$error.number">Must be a value in Bitcoins like 1.5 or 0.0005</p>
+                        <p class="help-block" ng-show="newgameForm.betInputAmount.$error.max">The amount cannot be higher then your wallet balance</p>
+                    </div>
+                    <button type="button" class="btn btn-success" data-ng-click="g.startNewGame(betInputAmount, 'black')">Start new game</button>
+                </form>
+
+            </div>
+        </div>
+
+        <div ng-show="g.wallet.isConnected() && g.Game.getUnfilteredGamesCount() > 0" class="panel panel-default col-xs-6 col-md-6">
+            <div class="panel-body">
+                <h2>Filter games</h2>
+
+                <p>Found {{g.Game.getGamesCount()}}/{{g.Game.getUnfilteredGamesCount()}} Games</p>
+
+                <form name="filtergamesForm" class="form-inline" novalidate>
+
                     <div class="input-group col-xs-12">
-                        <input type="number" class="form-control" name="betInputAmount" id="betInputAmount" placeholder="Amount" ng-model="betInputAmount" step="0.05" ng-min="0" ng-max="{{g.wallet.getBalance()}}" min="0" max="99" required>
-                        <span class="input-group-addon"><span class="glyphicon glyphicon-bitcoin" aria-hidden="true"></span></span>
+                        <div class="col-sm-3">owner:</div>
+                        <label class="radio-inline">
+                            <input ng-model="g.optionsOwner" type="radio" name="optionsOwner" id="optionsOwner1" value="all" checked>
+                            All
+                        </label>
+                        <label class="radio-inline">
+                            <input ng-model="g.optionsOwner" type="radio" name="optionsOwner" id="optionsOwner2" value="own">
+                            Only my games
+                        </label>
+                        <label class="radio-inline">
+                            <input ng-model="g.optionsOwner" type="radio" name="optionsOwner" id="optionsOwner3" value="notown">
+                            Not my games
+                        </label>
                     </div>
 
-                    <p class="help-block" ng-show="newgameForm.betInputAmount.$error.required">The amount is needed to start a new game</p>
-                    <p class="help-block" ng-show="newgameForm.betInputAmount.$error.number">Must be a value in Bitcoins like 1.5 or 0.0005</p>
-                    <p class="help-block" ng-show="newgameForm.betInputAmount.$error.max">The amount cannot be higher then your wallet balance</p>
-                </div>
-                <button type="button" class="btn btn-success" data-ng-click="g.startNewGame(betInputAmount, 'black')">Start new game</button>
-            </form>
+                    <div class="input-group col-xs-12">
+                        <div class="col-sm-3">game state:</div>
+                        <label class="radio-inline">
+                            <input ng-model="g.optionsState" type="radio" name="optionsState" id="optionsState1" value="all" checked>
+                            All
+                        </label>
+                        <label class="radio-inline">
+                            <input ng-model="g.optionsState" type="radio" name="optionsState" id="optionsState2" value="open">
+                            open
+                        </label>
+                        <label class="radio-inline">
+                            <input ng-model="g.optionsState" type="radio" name="optionsState" id="optionsState3" value="running">
+                            running
+                        </label>
+                        <label class="radio-inline">
+                            <input ng-model="g.optionsState" type="radio" name="optionsState" id="optionsState4" value="ended">
+                            ended
+                        </label>
+                    </div>
+
+                    <div class="input-group col-xs-12">
+                        <div class="col-sm-3">game value:</div>
+                        <label class="radio-inline">
+                            <input ng-model="g.optionsValue" type="radio" name="optionsValue" id="optionsValue1" value="all" checked>
+                            All
+                        </label>
+                        <label class="radio-inline">
+                            <input ng-model="g.optionsValue" type="radio" name="optionsValue" id="optionsValue2" value="tiny">
+                            < 0.005 <span class="glyphicon glyphicon-bitcoin" aria-hidden="true"></span>
+                        </label>
+                        <label class="radio-inline">
+                            <input ng-model="g.optionsValue" type="radio" name="optionsValue" id="optionsValue3" value="medium">
+                            0.005 - 0.05 <span class="glyphicon glyphicon-bitcoin" aria-hidden="true"></span>
+                        </label>
+                        <label class="radio-inline">
+                            <input ng-model="g.optionsValue" type="radio" name="optionsValue" id="optionsValue4" value="big">
+                            > 0.5 <span class="glyphicon glyphicon-bitcoin" aria-hidden="true"></span>
+                        </label>
+                    </div>
+
+                    <button type="button" class="btn btn-success" data-ng-click="g.filter(g.optionsOwner, g.optionsState, g.optionsValue)">Filter</button>
+                </form>
+
+            </div>
         </div>
     </div>
 
     <div class="row">
+
+        <div ng-hide="g.wallet.isConnected() && g.Game.getUnfilteredGamesCount() > 0" class="panel panel-default col-xs-6 col-md-6">
+            <p>
+                Once you are connected and the Blockchain is getting synced the games will appear here.
+            </p>
+        </div>
+
         <div ng-repeat="game in g.Game.getGames() track by $index" class="col-xs-6 col-md-2">
             <a ui-sref="game.play({pubKey: game.address.public})" class="thumbnail">
-                <span ng-show="game.state == 'init'" class="glyphicon glyphicon-pause" aria-hidden="true"></span>
+                <span ng-show="game.state == 'open'" class="glyphicon glyphicon-pause" aria-hidden="true"></span>
                 <span ng-show="game.state == 'running'" class="glyphicon glyphicon-play" aria-hidden="true"></span>
                 <span ng-show="game.state == 'end'" class="glyphicon glyphicon-stop" aria-hidden="true"></span>
                 {{game.address.public | limitTo: 8}}<br/>

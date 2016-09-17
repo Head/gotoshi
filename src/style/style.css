@@ -1,5 +1,17 @@
 .nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
 
+.row {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    flex-wrap: wrap;
+}
+.row > [class*='col-'] {
+    display: flex;
+    flex-direction: column;
+}
+
 body {
     font-family:'helvetica', arial, sans-serif;
     background: #FFF;

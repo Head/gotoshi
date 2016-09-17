@@ -28,13 +28,61 @@ class Game {
         this.games = {};
         this.currentGame = angular.copy(this.gameInitState);
 
+        this.filters = {
+            owner: 'all',
+            state: 'all',
+            value: 'all'
+        };
+
         this.bitcoinNode.registerObserverCallback(this.gotTransaction.bind(this));
         this.bitcoinNode.subscribe(this.masterAddress);
     }
 
-    getGames() {
-        return this.games;
+    getUnfilteredGamesCount() {
+        return Object.keys(this.games).length;;
     }
+
+    getGamesCount() {
+        return Object.keys(this.getGames()).length;
+    }
+
+    getGames() {
+        return Object.filter(this.games, this.filterGames.bind(this));
+    }
+
+    filterGames(game) {
+        let isValid = true;
+        if (this.filters.owner === 'own') {
+            if (!this.wallet.isOwnAddress(game.players.one) && !this.wallet.isOwnAddress(game.players.two)) isValid = false;
+        }else if (this.filters.owner === 'notown') {
+            if (this.wallet.isOwnAddress(game.players.one) || this.wallet.isOwnAddress(game.players.two)) isValid = false;
+        }
+
+        if (this.filters.value === 'tiny') { //< 0.005
+            if (game.address.value > (0.005 * 100000000)) isValid = false;
+        } else if (this.filters.value === 'medium') { //0.005 - 0.05
+            if (game.address.value > (0.05 * 100000000) || game.value < (0.005 * 100000000)) isValid = false;
+        } else if (this.filters.value === 'big') { //> 0.5
+            if (game.address.value < (0.5 * 100000000)) isValid = false;
+        }
+
+        if (this.filters.state === 'all') {
+            //no filter
+        }else{
+            if (game.state !== this.filters.state) isValid = false;
+        }
+
+        return isValid;
+    }
+
+    setFilter(optionsOwner, optionsState, optionsValue) {
+        this.filters = {
+            owner: optionsOwner,
+            state: optionsState,
+            value: optionsValue
+        }
+    }
+
     isGameAddress(address) {
         if(address.pubKey === this.masterAddress) return true;
         else return Object.keys(this.games).find(x => x === address.pubKey);
@@ -88,7 +136,7 @@ class Game {
                     debug('OP_RETURN Message: '+message);
 
                     if(message === this.commands.new) {
-                        this.games[gameAddress].state = 'running';
+                        this.games[gameAddress].state = 'open';
                         this.games[gameAddress].address.value = tx.outs[1].value;
                         this.games[gameAddress].address.public = gameAddress;
                         this.games[gameAddress].players.one = pubKeyIn;
@@ -101,6 +149,7 @@ class Game {
                             }
                         }
                     }else if(message === this.commands.join) {
+                        this.games[gameAddress].state = 'running';
                         this.games[gameAddress].players.two = pubKeyIn;
                         this.games[gameAddress].address.paymentFromTwo = tx.outs[2].pubKey;
 
@@ -229,3 +278,9 @@ Game.$inject = ['bitcoinNode', '$q', 'wallet', '$state'];
 export default angular.module('services.game', [])
     .service('game', Game)
     .name;
+
+
+Object.filter = (obj, predicate) =>
+    Object.keys(obj)
+        .filter( key => predicate(obj[key]) )
+        .reduce( (res, key) => (res[key] = obj[key], res), {} );

@@ -21,6 +21,10 @@ export default class GameController {
          client.setDeadStones(data['deadStones']);
          }*/
 
+        this.optionsState = 'all';
+        this.optionsValue = 'all';
+        this.optionsOwner = 'all';
+
         this.Game.registerObserverCallback(this.gotMessage.bind(this));
 
         if(typeof $stateParams.pubKey !== 'undefined') {
@@ -69,6 +73,10 @@ export default class GameController {
         if (this.$scope.newgameForm.$valid) {
             this.Game.startNewGame(betInputAmount);
         }
+    }
+
+    filter(optionsOwner, optionsState, optionsValue) {
+        this.Game.setFilter(optionsOwner, optionsState, optionsValue);
     }
 
     setupNewBoard(player) {
