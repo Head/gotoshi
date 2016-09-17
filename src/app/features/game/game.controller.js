@@ -43,11 +43,13 @@ export default class GameController {
             this.client.setDeadStones(message.deadStones);
         } else if (message.type === 'move') {
             debug('got move ' + message.move.n + ' and try to do move no ' + this.client.moveNumber() + '/' + this.Game.currentGame.moves.length);
-            while (typeof this.Game.currentGame.moves[this.client.moveNumber()] !== 'undefined') {
-                debug('do move no ' + this.client.moveNumber());
-                //if(this.Game.currentGame.moves[this.client.moveNumber()].pk === this.Game.currentGame.players.one || this.Game.currentGame.moves[this.client.moveNumber()].pk === this.Game.currentGame.players.two) {
-                    this.client._game.playAt(this.Game.currentGame.moves[this.client.moveNumber()].y, this.Game.currentGame.moves[this.client.moveNumber()].x);
-                //}
+            for(let i=this.client.moveNumber(); (typeof this.Game.currentGame.moves[this.client.moveNumber()] !== 'undefined')
+                && (i <= (this.Game.currentGame.moves.length-1))
+                && (   this.Game.currentGame.moves[this.client.moveNumber()].pk === this.Game.currentGame.players.one
+                    || this.Game.currentGame.moves[this.client.moveNumber()].pk === this.Game.currentGame.players.two)
+                ;i++) {
+                debug('do move no ' + this.client.moveNumber(), this.Game.currentGame.moves[this.client.moveNumber()]);
+                this.client._game.playAt(this.Game.currentGame.moves[this.client.moveNumber()].y, this.Game.currentGame.moves[this.client.moveNumber()].x);
             }
         }
     }
