@@ -43,7 +43,7 @@ class BitcoinNode extends EventEmitter {
         this.lastBlock = params.blockchain.checkpoints[0].height;
 
         let opts = {
-            peerGroupOpts: {connectWeb: true, numPeers: 1, peerOpts: { relay: false }, getTip: () => chain.getTip},
+            peerGroupOpts: {connectWeb: true, numPeers: 1, peerOpts: { relay: false }},
             filterOpts: {falsePositiveRate: 0.0},
             blockstreamOpts: {filtered: true}
         };

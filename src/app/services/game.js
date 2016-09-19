@@ -153,19 +153,19 @@ class Game {
                         this.games[gameAddress].players.two = pubKeyIn;
                         this.games[gameAddress].address.paymentFromTwo = tx.outs[2].pubKey;
 
-                        const pubKeys = [];
-                        pubKeys[0] = new Buffer(this.masterAddress);
-                        pubKeys[1] = new Buffer(this.games[gameAddress].players.one);
-                        pubKeys[2] = new Buffer(this.games[gameAddress].players.two);
-                        pubKeys[3] = new Buffer(this.games[gameAddress].address.public);
+                        if(this.wallet.isOwnAddress(this.currentGame.players.one)) {
+                            const pubKeys = [];
+                            pubKeys[0] = new Buffer(this.masterAddress);
+                            pubKeys[1] = new Buffer(this.games[gameAddress].players.one);
+                            pubKeys[2] = new Buffer(this.games[gameAddress].players.two);
+                            pubKeys[3] = new Buffer(this.games[gameAddress].address.public);
 
-                        const redeemScript = bitcoinjs.script.multisigOutput(3, pubKeys); // 3 of 4
-                        const scriptPubKey = bitcoinjs.script.scriptHashOutput(bitcoinjs.crypto.hash160(redeemScript));
-                        const payAddress = bitcoinjs.address.fromOutputScript(scriptPubKey, bitcoinjs.networks.testnet);
+                            const redeemScript = bitcoinjs.script.multisigOutput(3, pubKeys); // 3 of 4
+                            const scriptPubKey = bitcoinjs.script.scriptHashOutput(bitcoinjs.crypto.hash160(redeemScript));
+                            const payAddress = bitcoinjs.address.fromOutputScript(scriptPubKey, bitcoinjs.networks.testnet);
 
-                        if(this.games[gameAddress].address.paymentFromTwo === payAddress) {
-                            this.games[gameAddress].address.payment = payAddress;
-                            if(this.wallet.isOwnAddress(this.currentGame.players.one)) {
+                            if(this.games[gameAddress].address.paymentFromTwo === payAddress) {
+                                this.games[gameAddress].address.payment = payAddress;
                                 this.wallet.spendOpenGame(gameAddress, payAddress);
                             }
                         }

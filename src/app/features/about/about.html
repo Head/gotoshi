@@ -1,3 +1,22 @@
 <div class="container">
-    <p>Lore ipsum...</p>
+    <div class="row">
+        <div class="col-xs-12 col-sm-9">
+            <h2>Instructions</h2>
+            <p>
+                Gotoshi is the first ever existing Blockchain game that runs only in a browser with no backend server.<br/>
+                It connects directly to Bitcoin full nodes for sending data other players.<br/>
+                <br/>
+                To play please install a local bridge:<br/>
+                npm install -g webcoin-bridge<br/>
+                npm install -g webcoin-bitcoin-testnet<br/>
+                webcoin-bridge --network webcoin-bitcoin-testnet --port 8193<br/>
+                <br/>
+                Debug with console:<br/>
+                localStorage.debug = 'gotoshi:*'<br/>
+                or for the full log<br/>
+                localStorage.debug = '*'
+            </p>
+            <p><a class="btn btn-default" ui-sref="game.list" role="button">View all games »</a></p>
+        </div>
+    </div>
 </div>
