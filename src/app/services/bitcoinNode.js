@@ -40,6 +40,11 @@ class BitcoinNode extends EventEmitter {
             }
         ];
 
+        let latestBlock = localStorage.getItem('block');
+        if (latestBlock !== null) {
+            //params.blockchain.checkpoints = localStorage.getItem('block');
+        }
+
         this.lastBlock = params.blockchain.checkpoints[0].height;
 
         let opts = {

@@ -46,14 +46,16 @@ export default class GameController {
         } else if (message.type === 'phase') {
             this.client.setDeadStones(message.deadStones);
         } else if (message.type === 'move') {
-            debug('got move ' + message.move.n + ' and try to do move no ' + this.client.moveNumber() + '/' + this.Game.currentGame.moves.length);
-            for(let i=this.client.moveNumber(); (typeof this.Game.currentGame.moves[this.client.moveNumber()] !== 'undefined')
-                && (i <= (this.Game.currentGame.moves.length-1))
-                && (   this.Game.currentGame.moves[this.client.moveNumber()].pk === this.Game.currentGame.players.one
-                    || this.Game.currentGame.moves[this.client.moveNumber()].pk === this.Game.currentGame.players.two)
+            let moveNo = this.client.moveNumber();
+            let moves = this.Game.currentGame.moves;
+            debug('got move ' + message.move.n + ' and try to do move no ' + moveNo + '/' + moves.length);
+            for(let i=moves; (typeof moves[moveNo] !== 'undefined')
+                && (i <= (moves.length-1))
+                && (   move.pk === this.Game.currentGame.players.one
+                    || move.pk === this.Game.currentGame.players.two)
                 ;i++) {
-                debug('do move no ' + this.client.moveNumber(), this.Game.currentGame.moves[this.client.moveNumber()]);
-                this.client._game.playAt(this.Game.currentGame.moves[this.client.moveNumber()].y, this.Game.currentGame.moves[this.client.moveNumber()].x);
+                debug('do move no ' + moveNo, moves[moveNo]);
+                this.client._game.playAt(moves[moveNo].y, moves[moveNo].x);
             }
         }
     }

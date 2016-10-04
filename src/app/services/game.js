@@ -128,7 +128,7 @@ class Game {
 
         tx.outs.forEach((out) => {
             try {
-                this.games[gameAddress] = this.games[gameAddress] || angular.copy(this.gameInitState);
+                let game = this.games[gameAddress] || angular.copy(this.gameInitState);
 
                 const chunks = bitcoinjs.script.decompile(out.script);
                 if(chunks.shift() === bitcoinjs.opcodes.OP_RETURN) {
@@ -136,48 +136,49 @@ class Game {
                     debug('OP_RETURN Message: '+message);
 
                     if(message === this.commands.new) {
-                        this.games[gameAddress].state = 'open';
-                        this.games[gameAddress].address.value = tx.outs[1].value;
-                        this.games[gameAddress].address.public = gameAddress;
-                        this.games[gameAddress].players.one = pubKeyIn;
+                        game.state = 'open';
+                        game.address.value = tx.outs[1].value;
+                        game.address.public = gameAddress;
+                        game.players.one = pubKeyIn;
                     }else if(message === this.commands.pass) {
-                        if(pubKeyIn === this.games[gameAddress].players.one || pubKeyIn === this.games[gameAddress].players.two) {
-                            if (this.games[gameAddress].state !== 'pass') {
-                                this.games[gameAddress].state = 'pass';
+                        if(pubKeyIn === game.players.one || pubKeyIn === game.players.two) {
+                            if (game.state !== 'pass') {
+                                game.state = 'pass';
                             } else {
-                                this.games[gameAddress].state = 'end';
+                                game.state = 'end';
                             }
                         }
                     }else if(message === this.commands.join) {
-                        this.games[gameAddress].state = 'running';
-                        this.games[gameAddress].players.two = pubKeyIn;
-                        this.games[gameAddress].address.paymentFromTwo = tx.outs[2].pubKey;
+                        game.state = 'running';
+                        game.players.two = pubKeyIn;
+                        game.address.paymentFromTwo = tx.outs[2].pubKey;
 
                         if(this.wallet.isOwnAddress(this.currentGame.players.one)) {
                             const pubKeys = [];
                             pubKeys[0] = new Buffer(this.masterAddress);
-                            pubKeys[1] = new Buffer(this.games[gameAddress].players.one);
-                            pubKeys[2] = new Buffer(this.games[gameAddress].players.two);
-                            pubKeys[3] = new Buffer(this.games[gameAddress].address.public);
+                            pubKeys[1] = new Buffer(game.players.one);
+                            pubKeys[2] = new Buffer(game.players.two);
+                            pubKeys[3] = new Buffer(game.address.public);
 
                             const redeemScript = bitcoinjs.script.multisigOutput(3, pubKeys); // 3 of 4
                             const scriptPubKey = bitcoinjs.script.scriptHashOutput(bitcoinjs.crypto.hash160(redeemScript));
-                            const payAddress = bitcoinjs.address.fromOutputScript(scriptPubKey, bitcoinjs.networks.testnet);
+                            const payAddress   = bitcoinjs.address.fromOutputScript(scriptPubKey, bitcoinjs.networks.testnet);
 
-                            if(this.games[gameAddress].address.paymentFromTwo === payAddress) {
-                                this.games[gameAddress].address.payment = payAddress;
+                            if(game.address.paymentFromTwo === payAddress) {
+                                game.address.payment = payAddress;
                                 this.wallet.spendOpenGame(gameAddress, payAddress);
                             }
                         }
                     }else{
                         const data = JSON.parse(message);
                         const move = {y: data.y, x: data.x, n: data.n, p: data.p, pk: pubKeyIn};
-                        this.games[gameAddress].moves[move.n] = move;
+                        game.moves[move.n] = move;
                         if (this.currentGame && this.currentGame.state === 'running' && this.currentGame.address.public === gameAddress) this.notifyMove(move);
                     }
                     this.tx.count++;
                     this.tx[this.tx.count] = message;
                 }
+                this.games[gameAddress] = game;
             }catch(e){
                 debug('Error with transaction: ', tx, tx.getId());
                 debug('gameAddress: ', gameAddress);
