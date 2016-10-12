@@ -46,14 +46,13 @@ export default class GameController {
         } else if (message.type === 'phase') {
             this.client.setDeadStones(message.deadStones);
         } else if (message.type === 'move') {
-            let moveNo = this.client.moveNumber();
             let moves = this.Game.currentGame.moves;
-            debug('got move ' + message.move.n + ' and try to do move no ' + moveNo + '/' + moves.length);
-            for(let i=moves; (typeof moves[moveNo] !== 'undefined')
-                && (i <= (moves.length-1))
-                && (   move.pk === this.Game.currentGame.players.one
-                    || move.pk === this.Game.currentGame.players.two)
-                ;i++) {
+            debug('got move ' + message.move.n + ' and try to do move no ' + this.client.moveNumber() + '/' + moves.length);
+            for(let moveNo = this.client.moveNumber(); (typeof moves[moveNo] !== 'undefined')
+                && (moveNo <= (moves.length-1))
+                && (   moves[moveNo].pk === this.Game.currentGame.players.one
+                    || moves[moveNo].pk === this.Game.currentGame.players.two)
+                ;moveNo++) {
                 debug('do move no ' + moveNo, moves[moveNo]);
                 this.client._game.playAt(moves[moveNo].y, moves[moveNo].x);
             }

@@ -23,8 +23,6 @@ class BitcoinNode extends EventEmitter {
         //params.net.webSeeds = ['ws://gotoshi.herokuapp.com:80'];
         //params.net.webSeeds.push('ws://localhost:8193');
         params.net.webSeeds.push('ws://gotoshi.herokuapp.com:80');
-        //
-
 
         params.blockchain.checkpoints = [ //testnet
             {
