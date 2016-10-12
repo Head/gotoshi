@@ -112,11 +112,11 @@ class Game {
             }
             // debug(tx.outs[0], tx.ins[0]);
         }catch(e) {
-            debug('Error with key decoding: ', tx, tx.getId());
+            debug('Error with key decoding', tx, tx.getId());
             debug(e);
         }
 
-        debug('in Game Service: ', tx, tx.getId());
+        debug('in Game Service', tx, tx.getId());
 
         isTxToMaster = tx.outs.find(this.isGameAddress.bind(this));
         if(typeof isTxToMaster==='undefined') return;

@@ -80,7 +80,7 @@ class BitcoinNode extends EventEmitter {
                     chain.getBlockAtHeight(params.blockchain.checkpoints[0].height, function (err, startBlock) {
                         if (err) {
                             debug('error looking up block at height', params.blockchain.checkpoints[0].height);
-                            return this.emit('error', err)
+                            return false;
                         }
 
                         const readStream = chain.createReadStream({ from: startBlock.header.getHash(), inclusive: false });
@@ -93,8 +93,8 @@ class BitcoinNode extends EventEmitter {
         this.peers.once('peer', () => {
             chain.getBlockAtHeight(params.blockchain.checkpoints[0].height, function (err, startBlock) {
                 if (err) {
-                    debug('error looking up block at height', params.blockchain.checkpoints[0].height);
-                    return this.emit('error', err)
+                    debug('error looking up block at height', params.blockchain.checkpoints[0].height, err);
+                    return false;
                 }
 
                 const readStream = chain.createReadStream({ from: startBlock.header.getHash(), inclusive: false });

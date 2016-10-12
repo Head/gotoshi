@@ -1,10 +1,10 @@
 {
-  "name": "angular-webpack-workflow",
+  "name": "gotoshi",
   "version": "1.0.0",
   "engines": {
     "node": "6.2.1"
   },
-  "description": "A workflow for Angular made with Webpack",
+  "description": "A Bitcoin GO game",
   "scripts": {
     "build": "rimraf dist && webpack --bail --progress --profile",
     "server": "webpack-dev-server --history-api-fallback --inline --progress",
@@ -15,14 +15,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Foxandxss/angular-webpack-workflow.git"
+    "url": "https://github.com/Head/gotoshi.git"
   },
-  "author": "Jesus Rodriguez",
+  "author": "Felix Schuchmann",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Foxandxss/angular-webpack-workflow/issues"
+    "url": "https://github.com/Head/gotoshi/issues"
   },
-  "homepage": "https://github.com/Foxandxss/angular-webpack-workflow",
+  "homepage": "https://github.com/Head/gotoshi",
   "dependencies": {
     "angular": "^1.5.5",
     "angular-ui-router": "0.3.1",
@@ -30,7 +30,7 @@
     "angular-bootstrap-show-errors": "latest",
     "bootstrap": "^3.3.5",
     "tenuki": "latest",
-    "bitcoin-net": "https://github.com/Head/bitcoin-net/tarball/master",
+    "bitcoin-net": "latest",
     "bitcoin-filter": "latest",
     "bitcoin-inventory": "latest",
     "blockchain-spv": "latest",
@@ -38,7 +38,7 @@
     "webcoin-bitcoin": "latest",
     "webcoin-bitcoin-testnet": "latest",
     "webcoin-bridge": "latest",
-    "bitcoinjs-lib": "latest",
+    "bitcoinjs-lib": "https://github.com/bitcoinjs/bitcoinjs-lib/tarball/master",
     "levelup": "latest",
     "memdown": "latest",
     "level-js": "latest"
