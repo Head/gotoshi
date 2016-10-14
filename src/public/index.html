@@ -43,12 +43,14 @@
                   <thead>
                     <tr>
                       <th>Tx</th>
+                      <th>Index</th>
                       <th>Value</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr ng-repeat="tx in home.wallet.wallet.unspend track by $index">
                       <td>{{tx.tx | limitTo: 9}}...</td>
+                      <td>{{tx.index}}</td>
                       <td>{{tx.value / 100000000}}</td>
                     </tr>
                   </tbody>

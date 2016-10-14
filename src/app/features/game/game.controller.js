@@ -3,12 +3,13 @@ import ExampleGameControls from './example-controls';
 const debug = require('debug')('gotoshi:gameController');
 
 export default class GameController {
-    constructor(game, wallet, $stateParams, $scope) {
+    constructor(game, wallet, $stateParams, $scope, $timeout) {
         this.Game = game;
         this.wallet = wallet;
         this.client = {};
         this.tenuki = require('tenuki');
         this.$scope = $scope;
+        this.$timeout = $timeout;
 
         /*if (data['moveNumber'] === client.moveNumber() + 1) {
          if (data['pass']) {
@@ -48,13 +49,17 @@ export default class GameController {
         } else if (message.type === 'move') {
             let moves = this.Game.currentGame.moves;
             debug('got move ' + message.move.n + ' and try to do move no ' + this.client.moveNumber() + '/' + moves.length);
+            let promise = this.$timeout();
             for(let moveNo = this.client.moveNumber(); (typeof moves[moveNo] !== 'undefined')
                 && (moveNo <= (moves.length-1))
                 && (   moves[moveNo].pk === this.Game.currentGame.players.one
                     || moves[moveNo].pk === this.Game.currentGame.players.two)
                 ;moveNo++) {
-                debug('do move no ' + moveNo, moves[moveNo]);
-                this.client._game.playAt(moves[moveNo].y, moves[moveNo].x);
+                promise = promise.then(() => {
+                    debug('do move no ' + moveNo, moves[moveNo]);
+                    this.client._game.playAt(moves[moveNo].y, moves[moveNo].x);
+                    return this.$timeout(500);
+                });
             }
         }
     }
@@ -124,4 +129,4 @@ export default class GameController {
     }
 }
 
-GameController.$inject = ['game', 'wallet', '$stateParams', '$scope'];
+GameController.$inject = ['game', 'wallet', '$stateParams', '$scope', '$timeout'];

@@ -38,7 +38,9 @@ class Wallet {
 
     gotTransaction(tx) {
         try {
+            let index = 0;
             tx.outs.forEach((output) => {
+                output.index = index;
                 const pubKey = bitcoinjs.address.fromOutputScript(output.script, bitcoinjs.networks.testnet);
 
                 if (this.isOwnAddress(pubKey)) {
@@ -46,6 +48,8 @@ class Wallet {
 
                     let chunksIn = bitcoinjs.script.decompile(tx.ins[0].script);
                     let pubKeyIn = bitcoinjs.ECPair.fromPublicKeyBuffer(chunksIn[1], bitcoinjs.networks.testnet);
+
+                    debug("output", output);
 
                     let prevOutTxId = [].reverse.call(new Buffer(tx.ins[0].hash)).toString('hex');
                     if(pubKeyIn.getAddress() === pubKey) { //send to self
@@ -56,11 +60,12 @@ class Wallet {
                         }
                     }
 
-                    this.addUnspend(tx.getId(), output.value.toNumber());
+                    this.addUnspend(tx.getId(), output.value.toNumber(), output.index);
                 }
+                index++;
             });
         }catch(e){
-            //debug("a error occurred ", e);
+            debug("an error occurred", e);
         }
     }
 
@@ -99,9 +104,9 @@ class Wallet {
         this.set(this.wallet);
         return unspend;
     }
-    addUnspend(tx, balance) {
+    addUnspend(tx, balance, index) {
         if(this.wallet.unspend.findIndex(x => x.tx === tx) > -1) return;
-        this.wallet.unspend.push({tx: tx, value: balance});
+        this.wallet.unspend.push({tx: tx, value: balance, index: index});
         this.wallet.lastTX = tx;
         this.wallet.balance += balance;
         this.set(this.wallet);
@@ -126,6 +131,8 @@ class Wallet {
         const walletToken = localStorage.getItem('wallet');
         if(walletToken && walletToken !== 'undefined') {
             Object.assign(this.wallet, this.decode(walletToken));
+            this.wallet.unspend = [];
+            this.wallet.balance = 0;
             return true;
         }else return false;
     }
@@ -179,7 +186,7 @@ class Wallet {
             return;
         }
 
-        tx.addInput(lastTx.tx, 0); //index 0
+        tx.addInput(lastTx.tx, lastTx.index); //index 0
 
         const balance = lastTx.value-amountSum;
         tx.addOutput(this.getLatestAddress(), balance);
@@ -202,7 +209,7 @@ class Wallet {
         debug(buildTX.toHex());
 
         this.bitcoinNode.sendTx(buildTX);
-        this.addUnspend(buildTX.getId(), balance);
+        this.addUnspend(buildTX.getId(), balance, 0);
         this.set(this.wallet);
 
         return buildTX.getId();

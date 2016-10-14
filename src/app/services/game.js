@@ -133,7 +133,7 @@ class Game {
                 const chunks = bitcoinjs.script.decompile(out.script);
                 if(chunks.shift() === bitcoinjs.opcodes.OP_RETURN) {
                     const message =  chunks.toString();
-                    debug('OP_RETURN Message: '+message);
+                    debug('OP_RETURN Message: ', gameAddress, message);
 
                     if(message === this.commands.new) {
                         game.state = 'open';
@@ -149,6 +149,7 @@ class Game {
                             }
                         }
                     }else if(message === this.commands.join) {
+                        //todo: Was wenn der vor dem start kommt?
                         game.state = 'running';
                         game.players.two = pubKeyIn;
                         game.address.paymentFromTwo = tx.outs[2].pubKey;
@@ -194,7 +195,10 @@ class Game {
     }
     sendMove(move) {
         const deferred = this.$q.defer();
-        this.wallet.sendTxTo([{address: this.currentGame.address.public, value: 1}], JSON.stringify(move));
+        this.wallet.sendTxTo([
+            {address: this.currentGame.address.public, value: 1},
+            {address: this.masterAddress, value: 1}
+        ], JSON.stringify(move));
         this.currentGame.moves[move.n] = move;
         deferred.resolve();
         return deferred.promise;
