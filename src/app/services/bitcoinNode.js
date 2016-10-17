@@ -140,7 +140,7 @@ class BitcoinNode extends EventEmitter {
                 headers,
                 chain.createWriteStream(),
                 this._error.bind(this)
-            )
+            );
             this.peers.send('mempool');
         });
 
@@ -156,7 +156,7 @@ class BitcoinNode extends EventEmitter {
         this.observerCallbacks = [];
         const notifyObservers = (tx) =>{
             angular.forEach(this.observerCallbacks, function(callback){
-                callback(tx);
+                callback(this.decodeTransaction(tx));
             }, this);
         };
 
@@ -228,6 +228,37 @@ class BitcoinNode extends EventEmitter {
         if(this.peers.length>0) this.peers.send('mempool');
         deferred.resolve();
         return deferred.promise;
+    }
+    decodeTransaction(tx) {
+        try {
+            let index = 0;
+            for (let output of tx.outs) {
+                output.index = index;
+                if(typeof output.value.toNumber === 'function') output.value  = output.value.toNumber();
+                const chunks = bitcoinjs.script.decompile(output.script);
+                output.type = chunks[0];
+                if(output.type === bitcoinjs.opcodes.OP_RETURN) {
+                    chunks.shift();
+                    output.message = chunks.toString();
+                }else{
+                    output.pubKey = bitcoinjs.address.fromOutputScript(output.script, bitcoinjs.networks.testnet);
+                }
+            }
+            for (let input of tx.ins) {
+                const chunksIn = bitcoinjs.script.decompile(input.script);
+                if (bitcoinjs.script.isScriptHashInput(chunksIn)) {
+                    let hash = bitcoinjs.crypto.hash160(chunksIn[chunksIn.length - 1]);
+                    input.pubKey = bitcoinjs.address.toBase58Check(hash, bitcoinjs.networks.bitcoin.scriptHash)
+                } else {
+                    input.pubKey = bitcoinjs.ECPair.fromPublicKeyBuffer(chunksIn[1], bitcoinjs.networks.testnet).getAddress();
+                }
+                input.lastTxId = [].reverse.call(new Buffer(input.hash)).toString('hex');
+            }
+        }catch(e) {
+            debug('Error with decoding', tx, tx.getId());
+            debug(e);
+        }
+        return tx;
     }
 }
 

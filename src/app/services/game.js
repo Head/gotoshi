@@ -95,30 +95,9 @@ class Game {
     }
 
     gotTransaction(tx) {
-        //const txb = bitcoinjs.TransactionBuilder.fromTransaction(tx);
-
-        let isTxToMaster = undefined;
-        try {
-            for (let output of tx.outs) {
-                output.value  = output.value.toNumber();
-                const chunks = bitcoinjs.script.decompile(output.script);
-                if(chunks[0] !== bitcoinjs.opcodes.OP_RETURN) {
-                    output.pubKey = bitcoinjs.address.fromOutputScript(output.script, bitcoinjs.networks.testnet);
-                }
-            }
-            for (let input of tx.ins) {
-                const chunksIn = bitcoinjs.script.decompile(input.script);
-                input.pubKey = bitcoinjs.ECPair.fromPublicKeyBuffer(chunksIn[1], bitcoinjs.networks.testnet).getAddress();
-            }
-            // debug(tx.outs[0], tx.ins[0]);
-        }catch(e) {
-            debug('Error with key decoding', tx, tx.getId());
-            debug(e);
-        }
-
         debug('in Game Service', tx, tx.getId());
 
-        isTxToMaster = tx.outs.find(this.isGameAddress.bind(this));
+        let isTxToMaster = tx.outs.find(this.isGameAddress.bind(this));
         if(typeof isTxToMaster==='undefined') return;
 
         debug('found game');
@@ -127,65 +106,57 @@ class Game {
         this.bitcoinNode.subscribe(gameAddress);
 
         tx.outs.forEach((out) => {
-            try {
-                let game = this.games[gameAddress] || angular.copy(this.gameInitState);
+            let game = this.games[gameAddress] || angular.copy(this.gameInitState);
 
-                const chunks = bitcoinjs.script.decompile(out.script);
-                if(chunks.shift() === bitcoinjs.opcodes.OP_RETURN) {
-                    const message =  chunks.toString();
-                    debug('OP_RETURN Message: ', gameAddress, message);
+            if(out.type === bitcoinjs.opcodes.OP_RETURN) {
+                const message =  out.message;
+                debug('OP_RETURN Message: ', gameAddress, message);
 
-                    if(message === this.commands.new) {
-                        game.state = 'open';
-                        game.address.value = tx.outs[1].value;
-                        game.address.public = gameAddress;
-                        game.players.one = pubKeyIn;
-                    }else if(message === this.commands.pass) {
-                        if(pubKeyIn === game.players.one || pubKeyIn === game.players.two) {
-                            if (game.state !== 'pass') {
-                                game.state = 'pass';
-                            } else {
-                                game.state = 'end';
-                            }
+                if(message === this.commands.new) {
+                    game.state = 'open';
+                    game.address.value = tx.outs[1].value;
+                    game.address.public = gameAddress;
+                    game.players.one = pubKeyIn;
+                }else if(message === this.commands.pass) {
+                    if(pubKeyIn === game.players.one || pubKeyIn === game.players.two) {
+                        if (game.state !== 'pass') {
+                            game.state = 'pass';
+                        } else {
+                            game.state = 'end';
                         }
-                    }else if(message === this.commands.join) {
-                        //todo: Was wenn der vor dem start kommt?
-                        game.state = 'running';
-                        game.players.two = pubKeyIn;
-                        game.address.paymentFromTwo = tx.outs[2].pubKey;
-
-                        if(this.wallet.isOwnAddress(this.currentGame.players.one)) {
-                            const pubKeys = [];
-                            pubKeys[0] = new Buffer(this.masterAddress);
-                            pubKeys[1] = new Buffer(game.players.one);
-                            pubKeys[2] = new Buffer(game.players.two);
-                            pubKeys[3] = new Buffer(game.address.public);
-
-                            const redeemScript = bitcoinjs.script.multisigOutput(3, pubKeys); // 3 of 4
-                            const scriptPubKey = bitcoinjs.script.scriptHashOutput(bitcoinjs.crypto.hash160(redeemScript));
-                            const payAddress   = bitcoinjs.address.fromOutputScript(scriptPubKey, bitcoinjs.networks.testnet);
-
-                            if(game.address.paymentFromTwo === payAddress) {
-                                game.address.payment = payAddress;
-                                this.wallet.spendOpenGame(gameAddress, payAddress);
-                            }
-                        }
-                    }else{
-                        const data = JSON.parse(message);
-                        const move = {y: data.y, x: data.x, n: data.n, p: data.p, pk: pubKeyIn};
-                        game.moves[move.n] = move;
-                        if (this.currentGame && this.currentGame.state === 'running' && this.currentGame.address.public === gameAddress) this.notifyMove(move);
                     }
-                    this.tx.count++;
-                    this.tx[this.tx.count] = message;
+                }else if(message === this.commands.join) {
+                    //todo: Was wenn der vor dem start kommt?
+                    game.state = 'running';
+                    game.players.two = pubKeyIn;
+                    game.address.paymentFromTwo = tx.outs[2].pubKey;
+
+                    if(this.wallet.isOwnAddress(this.currentGame.players.one)) {
+                        const pubKeys = [];
+                        pubKeys[0] = new Buffer(this.masterAddress);
+                        pubKeys[1] = new Buffer(game.players.one);
+                        pubKeys[2] = new Buffer(game.players.two);
+                        pubKeys[3] = new Buffer(game.address.public);
+
+                        const redeemScript = bitcoinjs.script.multisigOutput(3, pubKeys); // 3 of 4
+                        const scriptPubKey = bitcoinjs.script.scriptHashOutput(bitcoinjs.crypto.hash160(redeemScript));
+                        const payAddress   = bitcoinjs.address.fromOutputScript(scriptPubKey, bitcoinjs.networks.testnet);
+
+                        if(game.address.paymentFromTwo === payAddress) {
+                            game.address.payment = payAddress;
+                            this.wallet.spendOpenGame(gameAddress, payAddress);
+                        }
+                    }
+                }else{
+                    const data = JSON.parse(message);
+                    const move = {y: data.y, x: data.x, n: data.n, p: data.p, pk: pubKeyIn};
+                    game.moves[move.n] = move;
+                    if (this.currentGame && this.currentGame.state === 'running' && this.currentGame.address.public === gameAddress) this.notifyMove(move);
                 }
-                this.games[gameAddress] = game;
-            }catch(e){
-                debug('Error with transaction: ', tx, tx.getId());
-                debug('gameAddress: ', gameAddress);
-                debug('pubKeyIn: ', pubKeyIn);
-                debug(e)
+                this.tx.count++;
+                this.tx[this.tx.count] = message;
             }
+            this.games[gameAddress] = game;
         });
     }
 

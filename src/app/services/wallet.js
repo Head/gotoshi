@@ -37,36 +37,21 @@ class Wallet {
     }
 
     gotTransaction(tx) {
-        try {
-            let index = 0;
-            tx.outs.forEach((output) => {
-                output.index = index;
-                const pubKey = bitcoinjs.address.fromOutputScript(output.script, bitcoinjs.networks.testnet);
-
-                if (this.isOwnAddress(pubKey)) {
-                    debug("received incoming payment", pubKey, tx.getId(), output.value.toNumber(), tx);
-
-                    let chunksIn = bitcoinjs.script.decompile(tx.ins[0].script);
-                    let pubKeyIn = bitcoinjs.ECPair.fromPublicKeyBuffer(chunksIn[1], bitcoinjs.networks.testnet);
-
-                    debug("output", output);
-
-                    let prevOutTxId = [].reverse.call(new Buffer(tx.ins[0].hash)).toString('hex');
-                    if(pubKeyIn.getAddress() === pubKey) { //send to self
-                        let index = this.wallet.unspend.findIndex(x => x.tx === prevOutTxId);
-                        if(index !== -1) {
+        tx.outs.forEach((output) => {
+            if(output.type !== bitcoinjs.opcodes.OP_RETURN) {
+                if (this.isOwnAddress(output.pubKey)) {
+                    debug("received incoming payment", output.pubKey, tx.getId(), output.value, tx);
+                    if (tx.ins[0].pubKey === output.pubKey) { //send to self
+                        let index = this.wallet.unspend.findIndex(x => x.tx === tx.ins[0].lastTxId);
+                        if (index !== -1) {
                             this.wallet.balance -= this.wallet.unspend[index].value;
                             this.wallet.unspend.splice(index, 1);
                         }
                     }
-
-                    this.addUnspend(tx.getId(), output.value.toNumber(), output.index);
+                    this.addUnspend(tx.getId(), output.value, output.index);
                 }
-                index++;
-            });
-        }catch(e){
-            debug("an error occurred", e);
-        }
+            }
+        });
     }
 
     isOwnAddress(address) {
