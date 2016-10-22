@@ -28,20 +28,6 @@ class BitcoinNode extends EventEmitter {
 
         params.blockchain.checkpoints = [ //testnet
             {
-                height: 927360, //heigth/2016
-                header: {
-                    version: 805306368,
-                    prevHash: utils.toHash('000000000000009dcb3ae6d68828e2f5ccfd58780abb260354e74484106f81ce'),
-                    merkleRoot: utils.toHash('75ad5b2aec33cda5755f9cfb9c74e11cb2954c0104dc8fc00fb145ebe0dd8249'),
-                    timestamp: new Date('2016-09-08T10:06:07Z') / 1000, // | 0 ?
-                    bits: 436339440,
-                    nonce: 2576579554
-                }
-            }
-        ];
-
-        params.blockchain.checkpoints = [ //testnet
-            {
                 height: 989856, //heigth/2016
                 header: {
                     version: 536870912,
@@ -54,8 +40,28 @@ class BitcoinNode extends EventEmitter {
             }
         ];
 
-
         this.lastBlock = params.blockchain.checkpoints[0].height;
+
+        const localBlock = localStorage.getItem('block');
+        if(localBlock && localBlock !== 'undefined') {
+            const localBlockDecoded = JSON.parse(localBlock);
+            params.blockchain.checkpoints = [ //testnet
+                {
+                    height: localBlockDecoded.height, //heigth/2016
+                    header: {
+                        version: localBlockDecoded.header.version,
+                        prevHash: new Buffer(localBlockDecoded.header.prevHash.data, 'hex'),
+                        merkleRoot: new Buffer(localBlockDecoded.header.merkleRoot.data, 'hex'),
+                        timestamp: localBlockDecoded.header.timestamp, // | 0 ?
+                        bits: localBlockDecoded.header.bits,
+                        nonce: localBlockDecoded.header.nonce
+                    }
+                }
+            ];
+
+            this.lastBlock = localBlockDecoded.height;
+            debug(params.blockchain.checkpoints);
+        }
 
         let opts = {
             peerGroupOpts: {connectWeb: true, numPeers: 1, peerOpts: { relay: false }},
@@ -96,6 +102,7 @@ class BitcoinNode extends EventEmitter {
             }, 0);
             if (block.height % 2016 === 0) {
                 debug('got 2016 block:', block.height);
+                localStorage.setItem('block', JSON.stringify(block));
             }
             /*if(this.timeout) $timeout.cancel(this.timeout);
             this.timeout = $timeout(()=> {
@@ -207,8 +214,10 @@ class BitcoinNode extends EventEmitter {
         let minutes = Math.floor(delta / 60) % 60;
 
         if(days>1) return days + " days";
+        else if(days===1) return days + " day";
         else if(hours>1) return hours + " hours";
-        else if(hours<=1) return minutes + " min";
+        else if(hours===1) return hours + " hour";
+        else if(hours<1) return minutes + " min";
         else return "?";
     }
     sendTx(tx) {

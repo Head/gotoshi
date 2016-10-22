@@ -2,7 +2,7 @@
     <div class="container">
         <h1><i class="fa fa-qrcode"></i> Bitcoin GO game</h1>
         <h2 class="tagline wrapit semi">
-            <a target="_blank" href="https://live.blockcypher.com/btc-testnet/address/{{g.Game.currentGame.address.public}}/">{{g.Game.currentGame.address.public}}</a>
+            <a target="_blank" class="gameAddress" href="https://live.blockcypher.com/btc-testnet/address/{{g.Game.currentGame.address.public}}/">{{g.Game.currentGame.address.public}}</a>
             {{g.Game.currentGame.address.payment | limitTo: 6}}
         </h2>
         <p ng-show="g.Game.currentGame.state == 'running'">Player

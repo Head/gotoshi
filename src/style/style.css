@@ -53,10 +53,6 @@ body {
     font-size:1.2em;
 }
 
-.page-header a, .page-header a:hover, .page-header a:visited, .page-header a:active{
-    color: inherit;
-}
-
 .page-header {
     padding:60px 0;
     font-size:1.2em;
@@ -82,10 +78,14 @@ body {
     opacity: .7;
 }
 
-.playerOne {
+.page-header a.gameAddress, .page-header a.gameAddress:hover{
+    color: #efefef;
+}
+
+.playerOne, .playerOne:hover {
     color: #333;
 }
 
-.playerTwo {
+.playerTwo, .playerTwo:hover {
     color: #fff;
 }
