@@ -65,16 +65,18 @@ export default class GameController {
     }
 
     resetGame() {
+        debug('resetGame');
         const boardElement = document.querySelector('.tenuki-board');
         boardElement.innerHTML = '';
         this.Game.resetGame();
     }
 
     resumeGame(player) {
+        debug('resumeGame', player);
         this.setupNewBoard(player);
     }
 
-    startNewGame(betInputAmount, player) {
+    startNewGame(betInputAmount) {
         this.$scope.$broadcast('show-errors-check-validity');
         if (this.$scope.newgameForm.$valid) {
             this.Game.startNewGame(betInputAmount);

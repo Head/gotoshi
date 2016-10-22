@@ -240,7 +240,7 @@ class BitcoinNode extends EventEmitter {
                 if(output.type === bitcoinjs.opcodes.OP_RETURN) {
                     chunks.shift();
                     output.message = chunks.toString();
-                }else{
+                }else if(output.type !== bitcoinjs.opcodes.OP_TRUE){
                     output.pubKey = bitcoinjs.address.fromOutputScript(output.script, bitcoinjs.networks.testnet);
                 }
             }

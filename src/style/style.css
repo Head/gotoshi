@@ -53,6 +53,10 @@ body {
     font-size:1.2em;
 }
 
+.page-header a, .page-header a:hover, .page-header a:visited, .page-header a:active{
+    color: inherit;
+}
+
 .page-header {
     padding:60px 0;
     font-size:1.2em;

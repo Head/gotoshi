@@ -113,10 +113,15 @@ class Game {
                 debug('OP_RETURN Message: ', gameAddress, message);
 
                 if(message === this.commands.new) {
-                    game.state = 'open';
                     game.address.value = tx.outs[1].value;
                     game.address.public = gameAddress;
                     game.players.one = pubKeyIn;
+                    if(game.state === 'init') {
+                        game.state = 'open';
+                    }else if(game.state === 'initjoin') {
+                        game.state = 'running';
+                        game = this.initPaymentOnJoin(game, gameAddress);
+                    }
                 }else if(message === this.commands.pass) {
                     if(pubKeyIn === game.players.one || pubKeyIn === game.players.two) {
                         if (game.state !== 'pass') {
@@ -126,26 +131,13 @@ class Game {
                         }
                     }
                 }else if(message === this.commands.join) {
-                    //todo: Was wenn der vor dem start kommt?
-                    game.state = 'running';
                     game.players.two = pubKeyIn;
                     game.address.paymentFromTwo = tx.outs[2].pubKey;
-
-                    if(this.wallet.isOwnAddress(this.currentGame.players.one)) {
-                        const pubKeys = [];
-                        pubKeys[0] = new Buffer(this.masterAddress);
-                        pubKeys[1] = new Buffer(game.players.one);
-                        pubKeys[2] = new Buffer(game.players.two);
-                        pubKeys[3] = new Buffer(game.address.public);
-
-                        const redeemScript = bitcoinjs.script.multisigOutput(3, pubKeys); // 3 of 4
-                        const scriptPubKey = bitcoinjs.script.scriptHashOutput(bitcoinjs.crypto.hash160(redeemScript));
-                        const payAddress   = bitcoinjs.address.fromOutputScript(scriptPubKey, bitcoinjs.networks.testnet);
-
-                        if(game.address.paymentFromTwo === payAddress) {
-                            game.address.payment = payAddress;
-                            this.wallet.spendOpenGame(gameAddress, payAddress);
-                        }
+                    if(game.state === 'open') {
+                        game.state = 'running';
+                        game = this.initPaymentOnJoin(game, gameAddress);
+                    }else if(game.state === 'init') {
+                        game.state = 'initjoin';
                     }
                 }else{
                     const data = JSON.parse(message);
@@ -158,6 +150,26 @@ class Game {
             }
             this.games[gameAddress] = game;
         });
+    }
+
+    initPaymentOnJoin(game, gameAddress) {
+        if(this.wallet.isOwnAddress(this.currentGame.players.one)) {
+            const pubKeys = [];
+            pubKeys[0] = new Buffer(this.masterAddress);
+            pubKeys[1] = new Buffer(game.players.one);
+            pubKeys[2] = new Buffer(game.players.two);
+            pubKeys[3] = new Buffer(game.address.public);
+
+            const redeemScript = bitcoinjs.script.multisigOutput(3, pubKeys); // 3 of 4
+            const scriptPubKey = bitcoinjs.script.scriptHashOutput(bitcoinjs.crypto.hash160(redeemScript));
+            const payAddress   = bitcoinjs.address.fromOutputScript(scriptPubKey, bitcoinjs.networks.testnet);
+
+            if(game.address.paymentFromTwo === payAddress) {
+                game.address.payment = payAddress;
+                this.wallet.spendOpenGame(gameAddress, payAddress);
+            }
+        }
+        return game;
     }
 
     registerObserverCallback(callback){
