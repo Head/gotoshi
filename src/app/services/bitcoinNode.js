@@ -28,14 +28,14 @@ class BitcoinNode extends EventEmitter {
 
         params.blockchain.checkpoints = [ //testnet
             {
-                height: 989856, //heigth/2016
+                height: 1012032, //heigth/2016
                 header: {
                     version: 536870912,
-                    prevHash: utils.toHash('0000000000001320421f1bb2c94000e11a621f581fc277c0e2911c3b89f680bd'),
-                    merkleRoot: utils.toHash('af0c1fa9e9167a1db397d5a4e42c4be6b05c728d80d4ee1b0bae7bc1a5913eb4'),
-                    timestamp: new Date('2016-10-14T14:59:01Z') / 1000, // | 0 ?
-                    bits: 438274384,
-                    nonce: 2768283676
+                    prevHash: utils.toHash('00000000000004101d04ebc90ade5d4b911aa13c038ecf25e9887d877203ddb8'),
+                    merkleRoot: utils.toHash('68344f9ea6407d77d5c68609272204070f57c9fc7aad68186a0d5608f10bd80a'),
+                    timestamp: new Date('2016-10-23T14:00:43Z') / 1000, // | 0 ?
+                    bits: 436546764,
+                    nonce: 575841817
                 }
             }
         ];
@@ -252,6 +252,7 @@ class BitcoinNode extends EventEmitter {
                 }else if(output.type !== bitcoinjs.opcodes.OP_TRUE){
                     output.pubKey = bitcoinjs.address.fromOutputScript(output.script, bitcoinjs.networks.testnet);
                 }
+                index++;
             }
             for (let input of tx.ins) {
                 const chunksIn = bitcoinjs.script.decompile(input.script);

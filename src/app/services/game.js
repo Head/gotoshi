@@ -133,6 +133,7 @@ class Game {
                 }else if(message === this.commands.join) {
                     game.players.two = pubKeyIn;
                     game.address.paymentFromTwo = tx.outs[2].pubKey;
+                    debug("got join, state: ", game.state);
                     if(game.state === 'open') {
                         game.state = 'running';
                         game = this.initPaymentOnJoin(game, gameAddress);
@@ -153,7 +154,9 @@ class Game {
     }
 
     initPaymentOnJoin(game, gameAddress) {
+        debug("in initPaymentOnJoin, player one:", this.currentGame.players.one);
         if(this.wallet.isOwnAddress(this.currentGame.players.one)) {
+            debug("isOwnAddress true");
             const pubKeys = [];
             pubKeys[0] = new Buffer(this.masterAddress);
             pubKeys[1] = new Buffer(game.players.one);
@@ -164,7 +167,9 @@ class Game {
             const scriptPubKey = bitcoinjs.script.scriptHashOutput(bitcoinjs.crypto.hash160(redeemScript));
             const payAddress   = bitcoinjs.address.fromOutputScript(scriptPubKey, bitcoinjs.networks.testnet);
 
+            debug("pay addr", game.address.paymentFromTwo, payAddress);
             if(game.address.paymentFromTwo === payAddress) {
+                debug("addresses match, spend it", gameAddress, payAddress);
                 game.address.payment = payAddress;
                 this.wallet.spendOpenGame(gameAddress, payAddress);
             }
@@ -207,6 +212,7 @@ class Game {
         if(this.currentGame.players.two !== null || this.currentGame.players.one === this.wallet.getLatestAddress()) return;
 
         this.currentGame.players.two = this.wallet.getLatestAddress();
+        this.currentGame.state = 'running';
 
         debug("player two pay for game");
         const pubKeys = [];
@@ -243,7 +249,7 @@ class Game {
         const keyPair = bitcoinjs.ECPair.makeRandom({network: bitcoinjs.networks.testnet});
         this.currentGame.address.public = keyPair.getAddress();
         this.currentGame.address.value = betAmount*100000000;
-        this.currentGame.state = 'running';
+        this.currentGame.state = 'open';
         this.currentGame.players.one = this.wallet.getLatestAddress();
 
         this.bitcoinNode.subscribe(this.currentGame.address.public);

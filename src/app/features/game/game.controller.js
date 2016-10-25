@@ -41,6 +41,7 @@ export default class GameController {
         if (message.type === 'start') {
             let player = 'black';
             if (this.wallet.isOwnAddress(message.game.players.one)) player = 'white';
+            debug(player);
             this.resumeGame(player);
         } else if (message.type === 'pass') {
             this.client.receivePass();
@@ -99,7 +100,7 @@ export default class GameController {
             fuzzyStonePlacement: true,
             hooks: {
                 submitPlay: (playedY, playedX, result) => {
-                    this.Game.sendMove({ n: this.client.moveNumber(), p: this.client.currentPlayer(), y: playedY, x: playedX }).then(function() {
+                    this.Game.sendMove({ n: this.client.moveNumber(), p: this.client.currentPlayer(), y: playedY, x: playedX, pk: this.wallet.getLatestAddress() }).then(function() {
                         result(true); //data[result] ???
                     }, function() {
                         result(false);

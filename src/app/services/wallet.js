@@ -17,10 +17,13 @@ const bitcoinjs = require('bitcoinjs-lib');
 class Wallet {
     constructor(bitcoinNode) {
         this.bitcoinNode = bitcoinNode;
-        this.wallet = {balance:0, lastTX: '', address: {}, unspend: [], openGames: []};
+        this.wallet = {balance:0, lastTX: '', address: {}, unspend: [], unspendTmp: {}, openGames: {}};
 
         debug('in init()');
         if(this.load()) {
+            this.wallet.unspendTmp = {};
+            this.wallet.openGames = {};
+            this.set(this.wallet);
             this.listenToAddress(this.wallet.address);
         }else{
             // generate random keyPair
@@ -34,6 +37,63 @@ class Wallet {
         }
 
         this.bitcoinNode.registerObserverCallback(this.gotTransaction.bind(this));
+        let tx1 = {
+            outs: [
+                {
+                    type:'foo',
+                    pubKey: 'mmTNfo1k92h958xTBP18YrSTMUnjrCAVS4',
+                    value: 1000,
+                    index: 0
+                }
+            ],
+            ins: [
+                {
+                    type:'foo',
+                    pubKey: 'asdf',
+                    value: 1000,
+                    lastTxId: "IDtx0"
+                }
+            ],
+            getId: function() {return "IDtx1"}
+        };
+        let tx2 = {
+            outs: [
+                {
+                    type:'foo',
+                    pubKey: 'mmTNfo1k92h958xTBP18YrSTMUnjrCAVS4',
+                    value: 1000,
+                    index: 0
+                }
+            ],
+            ins: [
+                {
+                    type:'foo',
+                    pubKey: 'mmTNfo1k92h958xTBP18YrSTMUnjrCAVS4',
+                    value: 1000,
+                    lastTxId: "IDtx1"
+                }
+            ],
+            getId: function() {return "IDtx2"}
+        };
+        let tx3 = {
+            outs: [
+                {
+                    type:'foo',
+                    pubKey: 'mmTNfo1k92h958xTBP18YrSTMUnjrCAVS4',
+                    value: 1000,
+                    index: 0
+                }
+            ],
+            ins: [
+                {
+                    type:'foo',
+                    pubKey: 'mmTNfo1k92h958xTBP18YrSTMUnjrCAVS4',
+                    value: 1000,
+                    lastTxId: "IDtx2"
+                }
+            ],
+            getId: function() {return "IDtx3"}
+        };
     }
 
     gotTransaction(tx) {
@@ -46,14 +106,28 @@ class Wallet {
                         if (index !== -1) {
                             this.wallet.balance -= this.wallet.unspend[index].value;
                             this.wallet.unspend.splice(index, 1);
+                        }else{
+                            debug("didn't find", tx.ins[0].lastTxId);
+                            this.wallet.unspendTmp[tx.ins[0].lastTxId] = true;
                         }
                     }
                     this.addUnspend(tx.getId(), output.value, output.index);
                 }
             }
         });
+        this.removeUnspendTmp();
     }
 
+    removeUnspendTmp() {
+        Object.keys(this.wallet.unspendTmp).forEach((txTmpId) => {
+            let index = this.wallet.unspend.findIndex(x => x.tx === txTmpId);
+            if (index !== -1) {
+                this.wallet.balance -= this.wallet.unspend[index].value;
+                this.wallet.unspend.splice(index, 1);
+                delete this.wallet.unspendTmp[txTmpId];
+            }
+        });
+    }
     isOwnAddress(address) {
         if(address === this.wallet.address.address) return true;
         else return false;
@@ -126,17 +200,20 @@ class Wallet {
     }
 
     saveOpenGame(txID, keyPair, value) {
-        this.wallet.openGames[keyPair.getAddress()] = {txId: txID, keypair: keyPair, value: value};
+        this.wallet.openGames[keyPair.getAddress()] = {txId: txID, wif: keyPair.toWIF(), value: value};
+        debug(this.wallet);
         this.set(this.wallet);
     }
 
     spendOpenGame(from, to) {
+        debug("in spendOpenGame", from, to, this.wallet.openGames);
         if(typeof this.wallet.openGames[from] === 'undefined') return;
         let lastTx = this.wallet.openGames[from];
         const tx = new bitcoinjs.TransactionBuilder(bitcoinjs.networks.testnet);
         tx.addInput(lastTx.txId, 1); //index 1
         tx.addOutput(to, lastTx.value-8000);
-        tx.sign(0, lastTx.keypair);
+        const keyPair = bitcoinjs.ECPair.fromWIF(lastTx.wif, bitcoinjs.networks.testnet);
+        tx.sign(0, keyPair);
 
         const buildTX = tx.build();
         debug("pay to game", buildTX.toHex());
