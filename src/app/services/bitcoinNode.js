@@ -21,10 +21,10 @@ class BitcoinNode extends EventEmitter {
         super();
         this.$q = $q;
         this.subscriptions = [];
-        params.net.webSeeds = ['ws://localhost:8193'];
+        //params.net.webSeeds = ['ws://localhost:8193'];
         //params.net.webSeeds = ['ws://gotoshi.herokuapp.com:80'];
-        //params.net.webSeeds.push('ws://localhost:8193');
-        params.net.webSeeds.push('ws://gotoshi.herokuapp.com:80');
+        params.net.webSeeds.push('wss://localhost:8193');
+        params.net.webSeeds.push('wss://gotoshi.herokuapp.com:80');
 
         params.blockchain.checkpoints = [ //testnet
             {
@@ -258,7 +258,7 @@ class BitcoinNode extends EventEmitter {
                 const chunksIn = bitcoinjs.script.decompile(input.script);
                 if (bitcoinjs.script.isScriptHashInput(chunksIn)) {
                     let hash = bitcoinjs.crypto.hash160(chunksIn[chunksIn.length - 1]);
-                    input.pubKey = bitcoinjs.address.toBase58Check(hash, bitcoinjs.networks.bitcoin.scriptHash)
+                    input.pubKey = bitcoinjs.address.toBase58Check(hash, bitcoinjs.networks.testnet.scriptHash)
                 } else {
                     input.pubKey = bitcoinjs.ECPair.fromPublicKeyBuffer(chunksIn[1], bitcoinjs.networks.testnet).getAddress();
                 }

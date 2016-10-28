@@ -187,6 +187,7 @@ class Game {
             {address: this.currentGame.address.public, value: 1},
             {address: this.masterAddress, value: 1}
         ], JSON.stringify(move));
+        move.pk = this.wallet.getLatestAddress();
         this.currentGame.moves[move.n] = move;
         deferred.resolve();
         return deferred.promise;

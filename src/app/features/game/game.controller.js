@@ -100,7 +100,7 @@ export default class GameController {
             fuzzyStonePlacement: true,
             hooks: {
                 submitPlay: (playedY, playedX, result) => {
-                    this.Game.sendMove({ n: this.client.moveNumber(), p: this.client.currentPlayer(), y: playedY, x: playedX, pk: this.wallet.getLatestAddress() }).then(function() {
+                    this.Game.sendMove({ n: this.client.moveNumber(), p: this.client.currentPlayer(), y: playedY, x: playedX }).then(function() {
                         result(true); //data[result] ???
                     }, function() {
                         result(false);
