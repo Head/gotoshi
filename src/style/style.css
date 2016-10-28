@@ -12,6 +12,10 @@
     flex-direction: column;
 }
 
+.navbar-collapse.in {
+    overflow-y: hidden;
+}
+
 body {
     font-family:'helvetica', arial, sans-serif;
     background: #FFF;

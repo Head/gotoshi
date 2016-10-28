@@ -1,22 +1,77 @@
-<div class="container">
-    <div class="row">
-        <div class="col-xs-12 col-sm-9">
-            <h2>Instructions</h2>
-            <p>
-                Gotoshi is the first ever existing Blockchain game that runs only in a browser with no backend server.<br/>
-                It connects directly to Bitcoin full nodes for sending data other players.<br/>
-                <br/>
-                To play please install a local bridge:<br/>
-                npm install -g webcoin-bridge<br/>
-                npm install -g webcoin-bitcoin-testnet<br/>
-                webcoin-bridge --network webcoin-bitcoin-testnet --port 8193<br/>
-                <br/>
-                Debug with console:<br/>
-                localStorage.debug = 'gotoshi:*'<br/>
-                or for the full log<br/>
-                localStorage.debug = '*'
-            </p>
-            <p><a class="btn btn-default" ui-sref="game.list" role="button">View all games »</a></p>
+<div class="container" ng-controller="HomeController as home">
+    <h2>Info</h2>
+    <p>
+        Gotoshi is the first ever existing Blockchain game that runs only in a browser with no centralized backend server.<br/>
+        It connects directly to Bitcoin full nodes for sending data other players.<br/>
+        <br/>
+        In the navbar you see:
+    </p>
+    <div class="panel panel-default">
+        <div class="panel-heading">Blockchain connection state</div>
+        <div class="panel-body">
+            <p>This is the current state of your connection to the Blockchain network. Left is the current block heigth and right the time that this block is behind. The connection is established with a websocket and the help of <a href="https://github.com/mappum/webcoin">Webcoin</a>.</p>
+            <button ng-show="home.wallet.isConnected()" type="button" class="btn btn-default" title="actual block height">
+                <span class="glyphicon glyphicon-object-align-horizontal" aria-hidden="true"> {{home.wallet.getHeight()}} - {{home.wallet.getSynctimeDiff()}}</span>
+            </button>
         </div>
     </div>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">Latest transaction ID</div>
+        <div class="panel-body">
+            <p>Here you find the latest transaction ID and on click a overview of the wallets unspend transaction outputs (UTXOs).</p>
+            <button type="button" class="btn btn-default btn-lg"
+                    popover-placement="bottom"
+                    uib-popover-template="'transactionsPopover.html'"
+                    popover-title="last incoming transaction">
+                <span class="glyphicon glyphicon-link" aria-hidden="true"> {{home.wallet.getLastTX() | limitTo: 9 }}...</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">Wallet address & balance</div>
+        <div class="panel-body">
+            <p>This is the wallet address that is used to spend funds to the game wallet and represents the player in the games. Click for full address.</p>
+            <button type="button" class="btn btn-default btn-lg"
+                    popover-placement="bottom"
+                    uib-popover-html="home.htmlAddress"
+                    popover-title="Your current wallet address">
+                <span class="glyphicon glyphicon-qrcode" aria-hidden="true"> {{home.wallet.getLatestAddress() | limitTo: 5}}...</span>
+            </button>
+
+            <button type="button" class="btn btn-default btn-lg">
+                <span class="glyphicon glyphicon-bitcoin" aria-hidden="true" title="your balance"> {{home.wallet.getBalance() / 100000000}}</span>
+            </button>
+        </div>
+    </div>
+    </p>
+
+    <h2>Demo</h2>
+
+    <div class="embed-responsive embed-responsive-16by9">
+        <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/Xxc5mtEE4Dk" frameborder="0" allowfullscreen></iframe>
+    </div>
+
+    <h2>Instructions</h2>
+    To connect to a local socket instead of mine install the websocket-to-tcp-bridge:<br/>
+    <code>
+        npm install -g webcoin-bridge<br/>
+        npm install -g webcoin-bitcoin-testnet<br/>
+        webcoin-bridge --network webcoin-bitcoin-testnet --port 8193<br/>
+    </code>
+
+    <br/>
+    When you want to debug you can setup <a href="https://github.com/visionmedia/debug">debug</a> in the console:<br/>
+    <code>localStorage.debug = 'gotoshi:*'</code><br/>
+    or for the full log<br/>
+    <code>localStorage.debug = '*'</code>
+    </p>
+
+    <p><a class="btn btn-default" ui-sref="game.list" role="button">Click here to view all games »</a></p>
+
+    <h2>Contact</h2>
+    <p>
+        For more info contact me on <a href="https://felixschuchmann.de/">my website</a>.
+    </p>
 </div>

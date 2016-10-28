@@ -12,7 +12,8 @@ import about from './features/about';
 require( 'angular-bootstrap-show-errors' );
 
 import popover from 'angular-ui-bootstrap/src/popover';
+import collapse from 'angular-ui-bootstrap/src/collapse';
 
 //https://angular-ui.github.io/bootstrap/
-angular.module('app', [uirouter, 'ui.bootstrap.showErrors', home, game, about, popover])
+angular.module('app', [uirouter, 'ui.bootstrap.showErrors', home, game, about, popover, collapse])
   .config(routing);

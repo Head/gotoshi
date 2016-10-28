@@ -13,18 +13,18 @@
 <body ng-cloak>
 
   <!-- Fixed navbar -->
-  <nav class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
+  <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container" ng-controller="HomeController as home">
       <div class="navbar-header">
-        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <button type="button" class="navbar-toggle collapsed" ng-click="home.isNavCollapsed = !home.isNavCollapsed">
           <span class="sr-only">Toggle navigation</span>
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="#">Gotoshi</a>
+        <a class="navbar-brand" ui-sref="home">Gotoshi</a>
       </div>
-      <div id="navbar" class="navbar-collapse collapse" ng-controller="HomeController as home">
+      <div id="navbar" class="collapse navbar-collapse" uib-collapse="home.isNavCollapsed">
         <ul class="nav navbar-nav">
           <li ng-class="{ active: !home.isActive('/game') && !home.isActive('/about')}"><a ui-sref="home">Home</a></li>
           <li ng-class="{ active: home.isActive('/game')}"><a ui-sref="game.list">Games</a></li>
@@ -33,7 +33,7 @@
             <button ng-show="home.wallet.isConnected()" type="button" class="btn btn-default btn-lg hidden-md hidden-sm" title="actual block height">
               <span class="glyphicon glyphicon-object-align-horizontal" aria-hidden="true"> {{home.wallet.getHeight()}} - {{home.wallet.getSynctimeDiff()}}</span>
             </button>
-            <button ng-show="home.wallet.isConnected()" type="button" class="btn btn-default btn-lg visible-md-inline" title="actual block height">
+            <button ng-show="home.wallet.isConnected()" type="button" class="btn btn-default btn-lg visible-md-inline visible-md-inline" title="actual block height">
               <span class="glyphicon glyphicon-object-align-horizontal" aria-hidden="true"> {{home.wallet.getSynctimeDiff()}}</span>
             </button>
 
@@ -62,7 +62,8 @@
                     popover-placement="bottom"
                     uib-popover-template="'transactionsPopover.html'"
                     popover-title="last incoming transaction">
-              <span class="glyphicon glyphicon-link" aria-hidden="true"> {{home.wallet.getLastTX() | limitTo: 9 }}...</span>
+              <span class="glyphicon glyphicon-link visible-md-inline visible-md-inline" aria-hidden="true"> {{home.wallet.getLastTX() | limitTo: 5 }}...</span>
+              <span class="glyphicon glyphicon-link hidden-md hidden-sm" aria-hidden="true"> {{home.wallet.getLastTX() | limitTo: 9 }}...</span>
             </button>
 
             <button ng-hide="home.wallet.isConnected()" type="button" class="btn btn-default btn-lg" data-ng-click="home.wallet.connect()" title="connect">
@@ -80,7 +81,6 @@
               <span class="glyphicon glyphicon-bitcoin" aria-hidden="true" title="your balance"> {{home.wallet.getBalance() / 100000000}}</span>
             </button>
           </li>
-
         </ul>
       </div><!--/.nav-collapse -->
     </div>

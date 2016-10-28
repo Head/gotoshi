@@ -1,5 +1,6 @@
 export default class HomeController {
     constructor(game, wallet, $sce, $location) {
+        this.isNavCollapsed = true;
         this.wallet = wallet;
         this.name = this.wallet.getLatestAddress();
         this.$location = $location;
