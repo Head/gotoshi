@@ -81,7 +81,7 @@
               <span class="glyphicon glyphicon-bitcoin visible-md-inline visible-sm-inline" aria-hidden="true" title="your balance"> {{home.wallet.getBalance() / 100000000 | number:2}}</span>
             </button>
 
-            <button class="btn btn-default btn-lg" go-click="https://felixschuchmann.de/">
+            <button class="btn btn-default btn-lg" ng-click="home.gotoURL('https://felixschuchmann.de/')">
               <span class="glyphicon glyphicon-star" aria-hidden="true"></span> hire<span class="hidden-md"> me!</span>
             </button>
           </li>
