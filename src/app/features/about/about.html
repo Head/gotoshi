@@ -4,6 +4,8 @@
         Gotoshi is the first ever existing Blockchain game that runs only in a browser with no centralized backend server.<br/>
         It connects directly to Bitcoin full nodes for sending data other players.<br/>
         <br/>
+        You can read the thesis here: <a href="https://felixschuchmann.de/masterthesis.pdf">Peer-to-peer gaming on the Bitcoin Blockchain</a>.<br/>
+        <br/>
         In the navbar you see:
     </p>
     <div class="panel panel-default">
@@ -12,6 +14,9 @@
             <p>This is the current state of your connection to the Blockchain network. Left is the current block heigth and right the time that this block is behind. The connection is established with a websocket and the help of <a href="https://github.com/mappum/webcoin">Webcoin</a>.</p>
             <button ng-show="home.wallet.isConnected()" type="button" class="btn btn-default" title="actual block height">
                 <span class="glyphicon glyphicon-object-align-horizontal" aria-hidden="true"> {{home.wallet.getHeight()}} - {{home.wallet.getSynctimeDiff()}}</span>
+            </button>
+            <button ng-hide="home.wallet.isConnected()" type="button" class="btn btn-default btn-lg" data-ng-click="home.wallet.connect()" title="connect">
+                <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
             </button>
         </div>
     </div>
@@ -70,8 +75,14 @@
 
     <p><a class="btn btn-default" ui-sref="game.list" role="button">Click here to view all games »</a></p>
 
-    <h2>Contact</h2>
+    <h2>Contact & Impressum</h2>
     <p>
-        For more info contact me on <a href="https://felixschuchmann.de/">my website</a>.
+        For more info contact me on <a href="https://felixschuchmann.de/">my website</a>.<br/>
+        <br/>
+        Felix Schuchmann<br/>
+        Friedrich-Ebert-Str. 51<br/>
+        63512 Hainburg<br/>
+        <br/>
+        E-Mail: schuchmann@gmail.com
     </p>
 </div>

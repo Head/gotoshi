@@ -21,9 +21,9 @@ class BitcoinNode extends EventEmitter {
         super();
         this.$q = $q;
         this.subscriptions = [];
-        //params.net.webSeeds = ['ws://localhost:8193'];
+        params.net.webSeeds = ['ws://localhost:8193'];
         //params.net.webSeeds = ['ws://gotoshi.herokuapp.com:80'];
-        params.net.webSeeds.push('ws://localhost:8193');
+        //params.net.webSeeds.push('ws://localhost:8193');
         params.net.webSeeds.push('ws://gotoshi.herokuapp.com:80');
 
         params.blockchain.checkpoints = [ //testnet
@@ -177,7 +177,7 @@ class BitcoinNode extends EventEmitter {
             }, 0);
         });
 
-        this.connect();
+        //this.connect();
     }
 
     _error (err) {

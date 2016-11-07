@@ -136,7 +136,6 @@ class Wallet {
         this.bitcoinNode.connect();
     }
     isConnected() {
-        return true;
         return this.bitcoinNode.isConnected();
     }
     getHeight() {
