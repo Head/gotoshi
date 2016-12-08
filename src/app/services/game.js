@@ -12,7 +12,7 @@ class Game {
 
         //todo use vanity address
         //Address: mgogame3DCWbQGXCP5bQZqFeK1YP5qN7in
-        //Privkey: 91eMFqWUDgdctBoKi3715sgDMcX9iqqkEsA8kmw9uUiBLbMNgdD
+        //Privkey: 91eMFqWUDgdctBoKi3715sgDMcX9iqqkEsA8kmw9uUiBLbMNgdD use it if you want.
         this.masterAddress = 'mgogame3DCWbQGXCP5bQZqFeK1YP5qN7in';// 2N2G7Ps2W5AepNaK3Sk9pxxCkomc9yEif5T 2My53r8phch7JbfzyHgJcDbRfV4vBSa1yJr '2N8Dn9MYKmmxrDgb9wanNfCcp6Ar31tRvDZ';
 
         this.gameInitState = {
